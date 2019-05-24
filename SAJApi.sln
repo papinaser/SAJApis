@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2002
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAJApi", "SAJApi\SAJApi.csproj", "{935BB0D1-CDE4-4B33-B73C-DE7A1CECF115}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{935BB0D1-CDE4-4B33-B73C-DE7A1CECF115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{935BB0D1-CDE4-4B33-B73C-DE7A1CECF115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{935BB0D1-CDE4-4B33-B73C-DE7A1CECF115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{935BB0D1-CDE4-4B33-B73C-DE7A1CECF115}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BFA73F34-A0E2-4413-A64B-37BA7669249D}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 2
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://91.98.153.26:8080/tfs/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = SAJApi\\SAJApi.csproj
+		SccProjectName1 = SAJApi
+		SccLocalPath1 = SAJApi
+	EndGlobalSection
+EndGlobal
