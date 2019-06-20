@@ -1,15 +1,15 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using SepandAsa.Shared.Business.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
+using SepandAsa.Shared.Business.Security;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class SalaryStrapController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class SalaryStrapController : ApiController
   {
     [Route("api/SalaryStrap/GetCompanies/{token}")]
     [HttpGet]
@@ -17,21 +17,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         List<KeyValueModel> userCompanies = SalaryStrapManager.GetUserCompanies(UserAccount.Instance.CurrentUser.UserName);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) userCompanies
+          message = userCompanies
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.37",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -42,21 +42,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<int> years = SalaryStrapManager.GetYears(UserAccount.Instance.CurrentUser.UserName, companyId);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) years
+          message = years
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.38",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -67,21 +67,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         List<KeyValueModel> months = SalaryStrapManager.GetMonths(UserAccount.Instance.CurrentUser.UserName, companyId, year);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) months
+          message = months
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.38",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -96,12 +96,12 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        return (IHttpActionResult) new FileResult(Utils.ConvertStiToPdf(SalaryStrapManager.GetSalaryStrap(UserAccount.Instance.CurrentUser.UserName, companyId, year, month), Utils.GetTempFileName(token, "salary", "pdf")), (string) null);
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        return new FileResult(Utils.ConvertStiToPdf(SalaryStrapManager.GetSalaryStrap(UserAccount.Instance.CurrentUser.UserName, companyId, year, month), Utils.GetTempFileName(token, "salary", "pdf")), null);
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
+        Utils.log.Error(ex.Message, ex);
         throw new ApplicationException(ex.Message);
       }
     }
@@ -121,11 +121,6 @@ namespace SAJApi.Controllers
 
     public void Delete(int id)
     {
-    }
-
-    public SalaryStrapController()
-    {
-      
     }
   }
 }

@@ -1,9 +1,11 @@
-﻿namespace SAJApi.Models
+﻿using System.Collections.Generic;
+
+namespace SAJApi.Models
 {
     public class KeyValueModel
     {
-        public string key { get; set; }
         public string value { get; set; }
+        public string label { get; set; }
     }
     public class selectDateModel
     {
@@ -16,6 +18,6 @@
         public string id { get; set; }
         public string title { get; set; }
         public bool hasChildren { get; set; }
-        public System.Collections.Generic.List<treeModel> childs { get; set; }
+        public List<treeModel> childs { get; set; }
     }
 }

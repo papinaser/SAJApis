@@ -1,14 +1,14 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class ArchivesController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class ArchivesController : ApiController
   {
     [Route("api/Archives/GetGroupsForDataEntry/{attachmentHeaderId}/{token}")]
     [HttpGet]
@@ -16,21 +16,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<AttachInfoGroupModel> groupsForDataEntry = ArchivesManager.GetGroupsForDataEntry(attachmentHeaderId);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) groupsForDataEntry
+          message = groupsForDataEntry
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.29",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -45,26 +45,26 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         long logAttachsHeaderId = ArchivesManager.GetDetailsLogAttachsHeaderId(tblId, roykardId, mrId);
         IEnumerable<AttachmentGroupModel> attachmentGroupModels = ArchivesManager.GroupAttachmentsList(ArchivesManager.GetAttachmentsByHeadeId(logAttachsHeaderId));
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) new DataRowAttachmentsModel()
+          message = new DataRowAttachmentsModel
           {
-            headerId = logAttachsHeaderId,
-            list = attachmentGroupModels
+              headerId = logAttachsHeaderId,
+              list = attachmentGroupModels
           }
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.32",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -75,26 +75,26 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         long headerId;
         IEnumerable<AttachmentGroupModel> attachmentGroupModels = ArchivesManager.GroupAttachmentsList(ArchivesManager.GetMasterLogAttachs(masterLogId, out headerId));
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) new DataRowAttachmentsModel()
+          message = new DataRowAttachmentsModel
           {
-            headerId = headerId,
-            list = attachmentGroupModels
+              headerId = headerId,
+              list = attachmentGroupModels
           }
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.31",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -105,21 +105,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<AttachmentGroupModel> attachmentGroupModels = ArchivesManager.GroupAttachmentsList(ArchivesManager.GetAttachmentsByHeadeId(attachmentHeaderId));
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) attachmentGroupModels
+          message = attachmentGroupModels
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.27",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -130,21 +130,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         string urlForDownload = ArchivesManager.GetUrlForDownload(attachmentId, token);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) urlForDownload
+          message = urlForDownload
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.28",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -153,21 +153,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(model.token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(model.token, Request.GetClientIpAddress());
         long num = ArchivesManager.SaveDataEntry(model);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) num
+          message = num
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.30",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -176,21 +176,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         ArchivesManager.DeleteAttachment(attachId);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) "حذف با موفقیت انجام شد"
+          message = "حذف با موفقیت انجام شد"
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.30",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -199,28 +199,23 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(model.token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(model.token, Request.GetClientIpAddress());
         ArchivesManager.SaveDataEntry(model);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) "بروزرسانی با موفقیت انجام شد"
+          message = "بروزرسانی با موفقیت انجام شد"
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.30",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
-    }
-
-    public ArchivesController()
-    {
-      
     }
   }
 }

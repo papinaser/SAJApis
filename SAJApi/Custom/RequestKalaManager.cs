@@ -1,21 +1,20 @@
-﻿using SAJApi.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using SAJApi.Models;
 using SepandAsa.Bazargani.Common.Business;
 using SepandAsa.Bazargani.Common.Bussiness;
 using SepandAsa.Bazargani.Common.Domain;
 using SepandAsa.Bazargani.Sefareshat.Business.DarkhastKala;
 using SepandAsa.Bazargani.Sefareshat.Domain.DarkhastKala;
-using SepandAsa.Shared.Business.Common;
+using SepandAsa.Shared.Business.Attachments;
 using SepandAsa.Shared.Business.ParamDataType;
 using SepandAsa.Shared.Business.Security;
 using SepandAsa.Shared.Business.Utilities;
 using SepandAsa.Shared.Domain.Attachments;
 using SepandAsa.Shared.Domain.ParamDataType;
 using SepandAsa.UtilityClasses;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 
 namespace SAJApi.Custom
 {
@@ -29,7 +28,7 @@ namespace SAJApi.Custom
 
     internal static AgGridModel GetItemsByRequestKalaId(int requestId)
     {
-      RequestKalasInfo itemsByHeaderId = ((RequestKalasManager) RequestKalasManager.Instance).GetItemsByHeaderId(requestId);
+      RequestKalasInfo itemsByHeaderId = RequestKalasManager.Instance.GetItemsByHeaderId(requestId);
       string columnNames = ",RequestKalaItemId,ItemDescription,ItemAmount,ItemUnitId,UnitName,StockId,SubProjectId,ProjectId,TarhId,IsTarh,StockRoomNumber,PlanCode,BuyProjectCode,SubProjectNumber";
       itemsByHeaderId.EnforceConstraints = false;
       return Utils.GetAgGridModel(itemsByHeaderId.Tables["RequestKalaItems"].Copy(), true, columnNames);
@@ -45,15 +44,15 @@ namespace SAJApi.Custom
       int requestKalaId,
       out long headerId)
     {
-      RequestKalasInfo headerById = ((RequestKalasManager) RequestKalasManager.Instance).GetHeaderById(requestKalaId);
+      RequestKalasInfo headerById = RequestKalasManager.Instance.GetHeaderById(requestKalaId);
       if (headerById.RequestKalas[0].IsAttachmentsHeaderIdNull())
       {
-        AttachmentsInfo attachmentsHeader = SepandAsa.Shared.Business.Attachments.Attachments.CreateAttachmentsHeader((InfoTypes) 1, "1");
+        AttachmentsInfo attachmentsHeader = Attachments.CreateAttachmentsHeader((InfoTypes) 1, "1");
         headerById.RequestKalas[0].AttachmentsHeaderId=attachmentsHeader.AttachmentsHeader[0].AttachmentsHeaderId;
-        ((BusinessManager) RequestKalasManager.Instance).SaveInfo((DataSet) headerById);
+        RequestKalasManager.Instance.SaveInfo(headerById);
       }
       headerId = headerById.RequestKalas[0].AttachmentsHeaderId;
-      return Utils.CreateListFromTable<AttachmentInfoModel>((DataTable) SepandAsa.Shared.Business.Attachments.Attachments.GetAttachments(headerId).Attachments);
+      return Utils.CreateListFromTable<AttachmentInfoModel>(Attachments.GetAttachments(headerId).Attachments);
     }
 
     internal static IEnumerable<KeyValueModel> GetOrderDescs()
@@ -61,24 +60,24 @@ namespace SAJApi.Custom
       OrderSummaryDescInfo orderSummaryDesc = OrderSummaryDesc.Instance.GetAllOrderSummaryDesc();
       return orderSummaryDesc.OrderSummaryDesc.Select(osd => new KeyValueModel
       {
-          key = osd.OrderSummaryDescId.ToString(),
-          value = osd.OrderSummaryDescName
+          value = osd.OrderSummaryDescId.ToString(),
+          label = osd.OrderSummaryDescName
       });
     }
 
     internal static List<KeyValueModel> GetUnits()
     {
-      UnitInfo allUnit = ((Unit) Unit.Instance).GetAllUnit();
+      UnitInfo allUnit = Unit.Instance.GetAllUnit();
       List<KeyValueModel> keyValueModelList = new List<KeyValueModel>();
       using (IEnumerator<UnitInfo.UnitRow> enumerator = allUnit.Unit.GetEnumerator())
       {
         while (enumerator.MoveNext())
         {
           UnitInfo.UnitRow current = enumerator.Current;
-          keyValueModelList.Add(new KeyValueModel()
+          keyValueModelList.Add(new KeyValueModel
           {
-            key = current.UnitId.ToString(),
-            value = current.UnitName
+            value = current.UnitId.ToString(),
+            label = current.UnitName
           });
         }
       }
@@ -95,7 +94,7 @@ namespace SAJApi.Custom
         throw new ApplicationException("نوع درخواست نامعتبر است");
       if (saveModel.header.description.Contains("--"))
         throw new ApplicationException("توضیحات عبارت نامعتبر دارد");
-      RequestKalasInfo requestKalasInfo = !isUpdate ? ((BusinessManager) RequestKalasManager.Instance).MakeNewData() as RequestKalasInfo : ((RequestKalasManager) RequestKalasManager.Instance).GetHeaderById(saveModel.header.requestKalaId);
+      RequestKalasInfo requestKalasInfo = !isUpdate ? RequestKalasManager.Instance.MakeNewData() as RequestKalasInfo : RequestKalasManager.Instance.GetHeaderById(saveModel.header.requestKalaId);
       requestKalasInfo.RequestKalas[0].EmployeeId=UserAccount.Instance.CurrentUser.EmployeeId;
       requestKalasInfo.RequestKalas[0].RequesterOrganizationId=UserAccount.Instance.CurrentUser.OrganizationUnitId;
       requestKalasInfo.RequestKalas[0].RequsterUserId=UserAccount.Instance.CurrentUser.UserId;
@@ -111,7 +110,7 @@ namespace SAJApi.Custom
       }
       foreach (RequestKalaItemModel requestKalaItemModel1 in saveModel.items)
       {
-        if ((double) requestKalaItemModel1.ItemAmount <= 0.0)
+        if (requestKalaItemModel1.ItemAmount <= 0.0)
           throw new ApplicationException(string.Format("مقدار برای آیتم {0} نامعتبر است",requestKalaItemModel1.ItemDescription));
         if (requestKalaItemModel1.ItemUnitId == 0)
           throw new ApplicationException(string.Format("واحد برای آیتم {0} نامعتبر است", requestKalaItemModel1.ItemDescription));
@@ -123,7 +122,7 @@ namespace SAJApi.Custom
         requestKalaItemModel2.RequestKalaId = num;
         requestKalasInfo.RequestKalaItems.AddRequestKalaItemsRow(requestKalaItemsRow);
         requestKalaItemModel1.RequestKalaItemId = requestKalaItemsRow.RequestKalaItemId;
-        Utils.SetRowFromItem<RequestKalaItemModel>((DataRow) requestKalaItemsRow, requestKalaItemModel1);
+        Utils.SetRowFromItem(requestKalaItemsRow, requestKalaItemModel1);
       }
       RequestKalasManager.Instance.SaveInfo(requestKalasInfo);
       return "ذخیره سازی درخواست با موفقیت انجام شد";
@@ -135,8 +134,8 @@ namespace SAJApi.Custom
             .GetAllStockRoom();
         return stocks.StockRoom.Select(stock => new KeyValueModel
         {
-            key = stock.StockRoomId.ToString(),
-            value = $"{stock.StockRoomName}({stock.StockRoomNumber})"
+            value = stock.StockRoomId.ToString(),
+            label = $"{stock.StockRoomName}({stock.StockRoomNumber})"
         });            
     }
 
@@ -145,8 +144,8 @@ namespace SAJApi.Custom
         var tarhs = PlanManager.Instance.GetAllPlan();
         return tarhs.Plan.Select(plan => new KeyValueModel
         {
-            key = plan.PlanId.ToString(),
-            value = $"{plan.PlanName}({plan.PlanCode})"
+            value = plan.PlanId.ToString(),
+            label = $"{plan.PlanName}({plan.PlanCode})"
         });      
     }
 
@@ -155,8 +154,8 @@ namespace SAJApi.Custom
         var projects = BuyProjectManager.Instance.GetAllBuyProject();
         return projects.BuyProject.Select(prj => new KeyValueModel
         {
-            key = prj.BuyProjectId.ToString(),
-            value = $"{prj.BuyProjectName}({prj.BuyProjectCode})"
+            value = prj.BuyProjectId.ToString(),
+            label = $"{prj.BuyProjectName}({prj.BuyProjectCode})"
         });
     }
 
@@ -165,8 +164,8 @@ namespace SAJApi.Custom
         var subs = SubProjectManager.Instance.GetAll();
         return subs.Select(sub => new KeyValueModel
         {
-            key = sub.SubProjectId.ToString(),
-            value = $"{sub.SubProjectName}({sub.SubProjectNumber})"
+            value = sub.SubProjectId.ToString(),
+            label = $"{sub.SubProjectName}({sub.SubProjectNumber})"
         });      
     }
 

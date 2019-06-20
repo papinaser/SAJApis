@@ -4,6 +4,14 @@
 // MVID: E75874B1-C49B-4EF7-8C32-B89971E1CBDC
 // Assembly location: C:\Users\papinaser\Downloads\SAJApi.dll
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Web.Http;
+using System.Web.Http.Cors;
 using Newtonsoft.Json;
 using SAJApi.Custom;
 using SAJApi.Models;
@@ -11,22 +19,11 @@ using SepandAsa.RepairManagment.Business;
 using SepandAsa.RepairManagment.Domain;
 using SepandAsa.Shared.Business.Reports;
 using SepandAsa.Shared.Domain.Reports;
-using SepandAsa.Shared.Domain.SubSystemManagement;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Web.Http;
-using System.Web.Http.Cors;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class TDMSLogsController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class TDMSLogsController : ApiController
   {
     [Route("api/TDMSLogs/GetAttachments/{mrId}/{token}")]
     [HttpGet]
@@ -34,29 +31,29 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        IEnumerable<AttachmentGroupModel> attachmentGroupModels = (IEnumerable<AttachmentGroupModel>) new List<AttachmentGroupModel>();
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        IEnumerable<AttachmentGroupModel> attachmentGroupModels = new List<AttachmentGroupModel>();
         long headerId;
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
           attachmentGroupModels = tdmsMojodiats.GetAttachments(mrId, out headerId);
-        DataRowAttachmentsModel attachmentsModel = new DataRowAttachmentsModel()
+        DataRowAttachmentsModel attachmentsModel = new DataRowAttachmentsModel
         {
           headerId = headerId,
           list = attachmentGroupModels
         };
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) attachmentsModel
+          message = attachmentsModel
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.19",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -71,19 +68,19 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        string str = string.Format("frmSearchLogInLevelstbl{0}tbl{1}", (object) setTypeItemId, (object) rcId);
-        ReportInfo allReports = new ReportMaintenance((ISubSystem) RepairManagmentSubSystem.Instance, str).GetAllReports(false);
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        string str = string.Format("frmSearchLogInLevelstbl{0}tbl{1}", setTypeItemId, rcId);
+        ReportInfo allReports = new ReportMaintenance(RepairManagmentSubSystem.Instance, str).GetAllReports(false);
         List<KeyValueModel> keyValueModelList = new List<KeyValueModel>();
         foreach (ReportInfo.ReportRow reportRow in allReports.Report)
         {
-            keyValueModelList.Add(new KeyValueModel()
+            keyValueModelList.Add(new KeyValueModel
             {
-                key = reportRow.ReportId.ToString(),
-                value = reportRow.ReportTitle
+                value = reportRow.ReportId.ToString(),
+                label = reportRow.ReportTitle
             });
         }       
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
           message = keyValueModelList
@@ -92,7 +89,7 @@ namespace SAJApi.Controllers
       catch (Exception ex)
       {
         Utils.log.Error(ex.Message, ex);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.19",
           message = ex.Message
@@ -130,38 +127,38 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(model.token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(model.token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           tdmsMojodiats.UploadExcelLog(model);
           if (tdmsMojodiats.lstErrs.Count == 0)
           {
-            if (tdmsMojodiats.countInserted > (short) 0)
-              return new SimpleResult()
+            if (tdmsMojodiats.countInserted > 0)
+              return new SimpleResult
               {
                 result = "200",
-                message = (object) string.Format("تعداد {0} لاگ با موفقیت ذخیره شد", (object) tdmsMojodiats.countInserted)
+                message = string.Format("تعداد {0} لاگ با موفقیت ذخیره شد", tdmsMojodiats.countInserted)
               };
-            return new SimpleResult()
+            return new SimpleResult
             {
               result = "200",
-              message = (object) "لاگ جدید با موفقیت ذخیره شد"
+              message = "لاگ جدید با موفقیت ذخیره شد"
             };
           }
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "500.15",
-            message = (object) string.Join(Environment.NewLine, (IEnumerable<string>) tdmsMojodiats.lstErrs)
+            message = string.Join(Environment.NewLine, tdmsMojodiats.lstErrs)
           };
         }
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.16",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -176,23 +173,23 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           tdmsLogModel tdmsLogModel = tdmsMojodiats.InitForEntryLog(long.Parse(tdmsMojodiats.Decrypt(mrId)), long.Parse(rcId), long.Parse(mlId));
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "200",
-            message = (object) tdmsLogModel
+            message = tdmsLogModel
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.22",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -207,23 +204,23 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           IEnumerable<ListItemModel> listItemModels = tdmsMojodiats.LookupDataSource(long.Parse(tdmsMojodiats.Decrypt(mrId)), long.Parse(rcId), paramName);
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "200",
-            message = (object) listItemModels
+            message = listItemModels
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.24",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -234,24 +231,24 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(saveModel.token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(saveModel.token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           long num = tdmsMojodiats.SaveLogDataEntry(saveModel);
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "200",
-            message = (object) num
+            message = num
           };
         }
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.25",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -271,19 +268,19 @@ namespace SAJApi.Controllers
           string logForm = tdmsMojodiats.GetLogForm(token);
           string fileFullPathAppData2 = Utils.GetFileFullPathAppData(logForm);
           File.Copy(fileFullPathAppData1, fileFullPathAppData2, true);
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "200",
-            message = (object) logForm
+            message = logForm
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.13",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -295,21 +292,21 @@ namespace SAJApi.Controllers
       long num = long.Parse(masterLog);
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        MasterLogInfo masterLogById = ((MasterLog) MasterLog.Instance).GetMasterLogById(num);
-        ((MasterLog) MasterLog.Instance).SurveyAndDeleteMasterLogRow(masterLogById.MasterLog[0], true, true);
-        return new SimpleResult()
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        MasterLogInfo masterLogById = MasterLog.Instance.GetMasterLogById(num);
+        MasterLog.Instance.SurveyAndDeleteMasterLogRow(masterLogById.MasterLog[0], true, true);
+        return new SimpleResult
         {
           result = "200",
-          message = (object) "حذف با موفقیت انجام شد"
+          message = "حذف با موفقیت انجام شد"
         };
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.14",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -325,42 +322,42 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         long num = long.Parse(mlId);
-        MasterLogInfo masterLogById = ((MasterLog) MasterLog.Instance).GetMasterLogById(num);
-        ((MasterLog) MasterLog.Instance).SurveyAndDeleteMasterLogRow(masterLogById.MasterLog[0], false, false);
+        MasterLogInfo masterLogById = MasterLog.Instance.GetMasterLogById(num);
+        MasterLog.Instance.SurveyAndDeleteMasterLogRow(masterLogById.MasterLog[0], false, false);
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           fileName = Utils.GetFileFullPathAppData(fileName);
           tdmsMojodiats.ImportLog(long.Parse(tdmsMojodiats.Decrypt(mrId)), long.Parse(rcId), fileName, 0L, masterLogById);
           if (tdmsMojodiats.lstErrs.Count == 0)
           {
-            if (tdmsMojodiats.countInserted > (short) 0)
-              return new SimpleResult()
+            if (tdmsMojodiats.countInserted > 0)
+              return new SimpleResult
               {
                 result = "200",
-                message = (object) string.Format("تعداد {0} لاگ با موفقیت ویرایش شد", (object) tdmsMojodiats.countInserted)
+                message = string.Format("تعداد {0} لاگ با موفقیت ویرایش شد", tdmsMojodiats.countInserted)
               };
-            return new SimpleResult()
+            return new SimpleResult
             {
               result = "200",
-              message = (object) string.Format("لاگ {0} با موفقیت ویرایش شد", (object) num)
+              message = string.Format("لاگ {0} با موفقیت ویرایش شد", num)
             };
           }
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "500.15",
-            message = (object) string.Join(Environment.NewLine, (IEnumerable<string>) tdmsMojodiats.lstErrs)
+            message = string.Join(Environment.NewLine, tdmsMojodiats.lstErrs)
           };
         }
       }
       catch (Exception ex)
       {
         string str = ex.InnerException != null ? ex.InnerException.Message : "";
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.16",
-          message = (object) (ex.Message + "-" + ex.StackTrace + "-" + str)
+          message = ex.Message + "-" + ex.StackTrace + "-" + str
         };
       }
     }
@@ -372,8 +369,8 @@ namespace SAJApi.Controllers
       long num = long.Parse(mlId);
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        MasterLogInfo masterLogById = ((MasterLog) MasterLog.Instance).GetMasterLogById(num);
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        MasterLogInfo masterLogById = MasterLog.Instance.GetMasterLogById(num);
         string fileFullPathAppData1 = Utils.GetFileFullPathAppData(masterLogById.MasterLog[0].RoykardConfigId + "FormTemplate.xlsm");
         if (!File.Exists(fileFullPathAppData1))
           throw new ApplicationException("فایل ورود اطلاعات برای این فرم لاگ تعریف نشده");
@@ -384,19 +381,19 @@ namespace SAJApi.Controllers
           File.Copy(fileFullPathAppData1, fileFullPathAppData2, true);
           ExcelExport.Instance.Export(masterLogById.MasterLog[0].RoykardConfigId, masterLogById.MasterLog[0].RoykardConfigId, masterLogById.MasterLog[0].MasterLogId, fileFullPathAppData2);
           Console.WriteLine("****** Finished Export************");
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "200",
-            message = (object) logForm
+            message = logForm
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.17",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -413,36 +410,36 @@ namespace SAJApi.Controllers
       {
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
-          Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+          Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
           fileName = Utils.GetFileFullPathAppData(fileName);
-          tdmsMojodiats.ImportLog(long.Parse(tdmsMojodiats.Decrypt(mrId)), long.Parse(rcId), fileName, 0L, (MasterLogInfo) null);
+          tdmsMojodiats.ImportLog(long.Parse(tdmsMojodiats.Decrypt(mrId)), long.Parse(rcId), fileName, 0L, null);
           if (tdmsMojodiats.lstErrs.Count == 0)
           {
-            if (tdmsMojodiats.countInserted > (short) 0)
-              return new SimpleResult()
+            if (tdmsMojodiats.countInserted > 0)
+              return new SimpleResult
               {
                 result = "200",
-                message = (object) string.Format("تعداد {0} لاگ با موفقیت ذخیره شد", (object) tdmsMojodiats.countInserted)
+                message = string.Format("تعداد {0} لاگ با موفقیت ذخیره شد", tdmsMojodiats.countInserted)
               };
-            return new SimpleResult()
+            return new SimpleResult
             {
               result = "200",
-              message = (object) "لاگ جدید با موفقیت ذخیره شد"
+              message = "لاگ جدید با موفقیت ذخیره شد"
             };
           }
-          return new SimpleResult()
+          return new SimpleResult
           {
             result = "500.15",
-            message = (object) string.Join(Environment.NewLine, (IEnumerable<string>) tdmsMojodiats.lstErrs)
+            message = string.Join(Environment.NewLine, tdmsMojodiats.lstErrs)
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.16",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -459,22 +456,22 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           AgGridModel agGridModel = tdmsMojodiats.InitialLogList(mrId, rcId, viewType, setTypeItem, filterYear);
-          return new SimpleResult()
+          return new SimpleResult
           {
-            message = (object) agGridModel,
+            message = agGridModel,
             result = "200"
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.6"
         };
       }
@@ -484,56 +481,56 @@ namespace SAJApi.Controllers
     [HttpGet]
     public string GetRoykardConfigs(string id)
     {
-      SimpleResult simpleResult = (SimpleResult) null;
+      SimpleResult simpleResult = null;
       try
       {
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           List<KeyValueModel> roykardConfigs = tdmsMojodiats.GetRoykardConfigs(id, false);
-          simpleResult = new SimpleResult()
+          simpleResult = new SimpleResult
           {
-            message = (object) roykardConfigs,
+            message = roykardConfigs,
             result = "200"
           };
         }
       }
       catch (Exception ex)
       {
-        simpleResult = new SimpleResult()
+        simpleResult = new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.5"
         };
       }
-      return JsonConvert.SerializeObject((object) simpleResult);
+      return JsonConvert.SerializeObject(simpleResult);
     }
 
     [Route("api/TDMSLogs/GetRoykardConfigsForReport/{mrId}")]
     [HttpGet]
     public string GetRoykardConfigsForReport(string mrId)
     {
-      SimpleResult simpleResult = (SimpleResult) null;
+      SimpleResult simpleResult = null;
       try
       {
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           List<KeyValueModel> roykardConfigs = tdmsMojodiats.GetRoykardConfigs(mrId, true);
-          simpleResult = new SimpleResult()
+          simpleResult = new SimpleResult
           {
-            message = (object) roykardConfigs,
+            message = roykardConfigs,
             result = "200"
           };
         }
       }
       catch (Exception ex)
       {
-        simpleResult = new SimpleResult()
+        simpleResult = new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.5"
         };
       }
-      return JsonConvert.SerializeObject((object) simpleResult);
+      return JsonConvert.SerializeObject(simpleResult);
     }
 
     [Route("api/TDMSLogs/GetRoyardConfigLogTypes/{id}")]
@@ -545,18 +542,18 @@ namespace SAJApi.Controllers
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           List<KeyValueModel> royardConfigLogTypes = tdmsMojodiats.GetRoyardConfigLogTypes(id);
-          return new SimpleResult()
+          return new SimpleResult
           {
-            message = (object) royardConfigLogTypes,
+            message = royardConfigLogTypes,
             result = "200"
           };
         }
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.5"
         };
       }
@@ -568,7 +565,7 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         using (TDMSMojodiats tdmsMojodiats = new TDMSMojodiats())
         {
           ModelRelationInfo mojodiats = tdmsMojodiats.GetMojodiats(id);
@@ -587,19 +584,19 @@ namespace SAJApi.Controllers
               });
             }
           }
-          return JsonConvert.SerializeObject((object) new SimpleResult()
+          return JsonConvert.SerializeObject(new SimpleResult
           {
-            result = "200",
-            message = (object) treeModelList
+              result = "200",
+              message = treeModelList
           });
         }
       }
       catch (Exception ex)
       {
-        return JsonConvert.SerializeObject((object) new SimpleResult()
+        return JsonConvert.SerializeObject(new SimpleResult
         {
-          result = "501.2",
-          message = (object) ex.Message
+            result = "501.2",
+            message = ex.Message
         });
       }
     }
@@ -609,7 +606,7 @@ namespace SAJApi.Controllers
       byte[] bytes = Encoding.Unicode.GetBytes(clearText);
       StringBuilder stringBuilder = new StringBuilder(bytes.Length * 2);
       foreach (byte num in bytes)
-        stringBuilder.AppendFormat("{0:X2}", (object) num);
+        stringBuilder.AppendFormat("{0:X2}", num);
       return stringBuilder.ToString();
     }
 

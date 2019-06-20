@@ -1,13 +1,10 @@
-﻿using SAJApi.Models;
+﻿using System.Collections.Generic;
+using SAJApi.Models;
 using SepandAsa.Bazargani.Common.Business;
 using SepandAsa.Bazargani.Common.Business.PurchaseSourceManagement;
 using SepandAsa.Bazargani.Common.Domain;
 using SepandAsa.Bazargani.Common.Domain.PurchaseSourceManagement;
 using SepandAsa.Shared.Business.BaseInfo;
-using SepandAsa.Shared.Business.Common;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
 
 namespace SAJApi.Custom
 {
@@ -24,13 +21,13 @@ namespace SAJApi.Custom
       List<KeyValueModel> keyValueModelList = new List<KeyValueModel>();
       using (IEnumerator<PurchaseSourceTypeInfo.PurchaseSourceTypeRow> enumerator = all.PurchaseSourceType.GetEnumerator())
       {
-        while (((IEnumerator) enumerator).MoveNext())
+        while (enumerator.MoveNext())
         {
           PurchaseSourceTypeInfo.PurchaseSourceTypeRow current = enumerator.Current;
-          keyValueModelList.Add(new KeyValueModel()
+          keyValueModelList.Add(new KeyValueModel
           {
-            key = current.PurchaseSourceTypeId.ToString(),
-            value = current.PurchaseSourceTypeName
+            value = current.PurchaseSourceTypeId.ToString(),
+            label = current.PurchaseSourceTypeName
           });
         }
       }
@@ -53,31 +50,31 @@ namespace SAJApi.Custom
       ManbaKharidsInfo manbaKharidsInfo;
       if (model.isEdit)
       {
-        manbaKharidsInfo = ((BusinessManager) ManbaKharidsManager.Instance).GetDataById((object) model.data.manbaKharidId) as ManbaKharidsInfo;
+        manbaKharidsInfo = ManbaKharidsManager.Instance.GetDataById(model.data.manbaKharidId) as ManbaKharidsInfo;
       }
       else
       {
-        manbaKharidsInfo = ((BusinessManager) ManbaKharidsManager.Instance).MakeNewData() as ManbaKharidsInfo;
+        manbaKharidsInfo = ManbaKharidsManager.Instance.MakeNewData() as ManbaKharidsInfo;
         model.data.manbaKharidId = -1;
       }
-      Utils.SetRowFromItem<manbaKharidModel>((DataRow) manbaKharidsInfo.ManbaKharids[0], model.data);
-      ((BusinessManager) ManbaKharidsManager.Instance).SaveInfo((DataSet) manbaKharidsInfo);
+      Utils.SetRowFromItem(manbaKharidsInfo.ManbaKharids[0], model.data);
+      ManbaKharidsManager.Instance.SaveInfo(manbaKharidsInfo);
       return "ذخیره سازی منبع با موفقیت انجام شد";
     }
 
     internal static List<KeyValueModel> GetStates(string userName)
     {
-      StateInfo allState = ((State) State.Instance).GetAllState();
+      StateInfo allState = State.Instance.GetAllState();
       List<KeyValueModel> keyValueModelList = new List<KeyValueModel>();
       using (IEnumerator<StateInfo.StateRow> enumerator = allState.State.GetEnumerator())
       {
-        while (((IEnumerator) enumerator).MoveNext())
+        while (enumerator.MoveNext())
         {
           StateInfo.StateRow current = enumerator.Current;
-          keyValueModelList.Add(new KeyValueModel()
+          keyValueModelList.Add(new KeyValueModel
           {
-            key = current.StateId.ToString(),
-            value = current.StateName.ToString()
+            value = current.StateId.ToString(),
+            label = current.StateName
           });
         }
       }
@@ -91,7 +88,7 @@ namespace SAJApi.Custom
 
     internal string DeleteManba(int id, string userName)
     {
-      ((BusinessManager) ManbaKharidsManager.Instance).DeleteById((object) id);
+      ManbaKharidsManager.Instance.DeleteById(id);
       return "منبع خرید با موفقیت جذف شد";
     }
   }

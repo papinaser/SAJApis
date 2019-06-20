@@ -1,12 +1,12 @@
-﻿using SAJApi.Models;
-using SepandAsa.RepairManagment.Business;
-using SepandAsa.Shared.Business.Attachments;
-using SepandAsa.Shared.Domain.Attachments;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using SAJApi.Models;
+using SepandAsa.RepairManagment.Business;
+using SepandAsa.Shared.Business.Attachments;
+using SepandAsa.Shared.Domain.Attachments;
 
 namespace SAJApi.Custom
 {
@@ -19,25 +19,25 @@ namespace SAJApi.Custom
     internal static IEnumerable<AttachmentInfoModel> GetAttachmentsByHeadeId(
       long attachmentHeaderId)
     {
-      return Utils.CreateListFromTable<AttachmentInfoModel>((DataTable) SepandAsa.Shared.Business.Attachments.Attachments.GetAttachments(attachmentHeaderId).Attachments);
+      return Utils.CreateListFromTable<AttachmentInfoModel>(Attachments.GetAttachments(attachmentHeaderId).Attachments);
     }
 
     internal static IEnumerable<AttachmentGroupModel> GroupAttachmentsList(
       IEnumerable<AttachmentInfoModel> list)
     {
-      foreach (AttachmentInfoModel attachmentInfoModel in list.Where<AttachmentInfoModel>((Func<AttachmentInfoModel, bool>) (r => string.IsNullOrEmpty(r.groupName))))
+      foreach (AttachmentInfoModel attachmentInfoModel in list.Where(r => string.IsNullOrEmpty(r.groupName)))
       {
         attachmentInfoModel.groupName = "بدون گروه";
-        attachmentInfoModel.attachmentGroupId = new int?(0);
+        attachmentInfoModel.attachmentGroupId = 0;
       }
       List<AttachmentGroupModel> attachmentGroupModelList = new List<AttachmentGroupModel>();
-      foreach (IGrouping<string, AttachmentInfoModel> source in list.GroupBy<AttachmentInfoModel, string>((Func<AttachmentInfoModel, string>) (r => r.groupName)))
-        attachmentGroupModelList.Add(new AttachmentGroupModel()
+      foreach (IGrouping<string, AttachmentInfoModel> source in list.GroupBy(r => r.groupName))
+        attachmentGroupModelList.Add(new AttachmentGroupModel
         {
           groupName = source.Key,
-          list = (IEnumerable<AttachmentInfoModel>) source.ToList<AttachmentInfoModel>()
+          list = source.ToList()
         });
-      return (IEnumerable<AttachmentGroupModel>) attachmentGroupModelList;
+      return attachmentGroupModelList;
     }
 
     internal static long GetDetailsLogAttachsHeaderId(long tblId, long roykardId, long mrId)
@@ -45,16 +45,16 @@ namespace SAJApi.Custom
       string str1 = string.Format("tbl{0}tbl{1}", 
           ModelRelation.Instance.GetModelRelationById(mrId).ModelRelation[0].SetTypeItemId,roykardId);
       string str2 = str1 + "Id";
-      DataTable rowFromDataTable = ClsDinamicallyTable.Instance.GetSelectedRowFromDataTable(str1, string.Format("{0} = {1} ", (object) str2, (object) tblId));
+      DataTable rowFromDataTable = ClsDinamicallyTable.Instance.GetSelectedRowFromDataTable(str1, string.Format("{0} = {1} ", str2, tblId));
       rowFromDataTable.TableName = str1;
       if (rowFromDataTable == null || rowFromDataTable.Rows.Count <= 0 || rowFromDataTable.Rows[0] == null)
         throw new ApplicationException("اطلاعات رکورد جرئیات یافت نشد");
       if (rowFromDataTable.Rows[0]["AttachmentsHeaderId"] == DBNull.Value)
       {
-        AttachmentsInfo attachmentsHeader = SepandAsa.Shared.Business.Attachments.Attachments.CreateAttachmentsHeader((InfoTypes) 31, tblId.ToString() + rowFromDataTable.Rows[0]["RoykardConfigId"]);
+        AttachmentsInfo attachmentsHeader = Attachments.CreateAttachmentsHeader((InfoTypes) 31, tblId.ToString() + rowFromDataTable.Rows[0]["RoykardConfigId"]);
         if (attachmentsHeader.AttachmentsHeader.Count<= 0)
           throw new ApplicationException(" اطلاعات ضمائم ساخته نشد ");
-        if (!((DataRow) attachmentsHeader.AttachmentsHeader[0]).IsNull("AttachmentsHeaderId"))
+        if (!attachmentsHeader.AttachmentsHeader[0].IsNull("AttachmentsHeaderId"))
         {
           rowFromDataTable.Rows[0]["AttachmentsHeaderId"] = attachmentsHeader.AttachmentsHeader[0].AttachmentsHeaderId;
           (ClsDinamicallyTable.Instance)
@@ -68,25 +68,25 @@ namespace SAJApi.Custom
       long masterLogId,
       out long headerId)
     {
-      headerId = ((MasterLog) MasterLog.Instance).GetMasterLogAttachmentId(masterLogId);
-      return ArchivesManager.GetAttachmentsByHeadeId(headerId);
+      headerId = MasterLog.Instance.GetMasterLogAttachmentId(masterLogId);
+      return GetAttachmentsByHeadeId(headerId);
     }
 
     internal static IEnumerable<AttachInfoGroupModel> GetGroupsForDataEntry(
       long attachmentHeaderId)
     {
-      AttachmentGroupInfo allAttachmentGroup = ((AttachmentGroup) AttachmentGroup.Instance).GetAllAttachmentGroup();
+      AttachmentGroupInfo allAttachmentGroup = AttachmentGroup.Instance.GetAllAttachmentGroup();
       if (allAttachmentGroup.AttachmentGroup.Count== 0)
         throw new ApplicationException("گروهی برای ثبت ضمائم ثبت نشده است");
-      return Utils.CreateListFromTable<AttachInfoGroupModel>((DataTable) allAttachmentGroup.AttachmentGroup);
+      return Utils.CreateListFromTable<AttachInfoGroupModel>(allAttachmentGroup.AttachmentGroup);
     }
 
     internal static string GetUrlForDownload(long attachmentId, string token)
     {
-      AttachmentsInfo attachmentById = SepandAsa.Shared.Business.Attachments.Attachments.GetAttachmentById(attachmentId);
+      AttachmentsInfo attachmentById = Attachments.GetAttachmentById(attachmentId);
       byte[] attachmentData = attachmentById.Attachments[0].AttachmentData;
       string ext = attachmentById.Attachments[0].AttachmentExtension.Replace(".", "");
-      return Utils.CreateTempFileForRead(attachmentData, "atc" + (object) attachmentId, ext, token, true);
+      return Utils.CreateTempFileForRead(attachmentData, "atc" + attachmentId, ext, token, true);
     }
 
     internal static long SaveDataEntry(AttachmentInfoDataEntryModel model)
@@ -100,7 +100,7 @@ namespace SAJApi.Custom
       }
       else
       {
-        attachmentsInfo = SepandAsa.Shared.Business.Attachments.Attachments.GetAttachmentById(model.attachInfo.attachmentId);
+        attachmentsInfo = Attachments.GetAttachmentById(model.attachInfo.attachmentId);
         attachmentsRow = attachmentsInfo.Attachments[0];
       }
       attachmentsRow.AttachmentGroupId=model.attachInfo.attachmentGroupId.Value;
@@ -121,16 +121,16 @@ namespace SAJApi.Custom
       if (model.isNew)
       {
         attachmentsInfo.Attachments.AddAttachmentsRow(attachmentsRow);
-        SepandAsa.Shared.Business.Attachments.Attachments.CreateAttachment(attachmentsInfo);
+        Attachments.CreateAttachment(attachmentsInfo);
         return attachmentsInfo.Attachments[0].AttachmentId;
       }
-      SepandAsa.Shared.Business.Attachments.Attachments.UpdateAttachment(attachmentsInfo);
+      Attachments.UpdateAttachment(attachmentsInfo);
       return model.attachInfo.attachmentId;
     }
 
     internal static void DeleteAttachment(long attachId)
     {
-      SepandAsa.Shared.Business.Attachments.Attachments.DeleteAttachments(SepandAsa.Shared.Business.Attachments.Attachments.GetAttachmentById(attachId));
+      Attachments.DeleteAttachments(Attachments.GetAttachmentById(attachId));
     }
   }
 }

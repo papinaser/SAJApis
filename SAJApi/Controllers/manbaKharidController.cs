@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using Newtonsoft.Json;
@@ -13,7 +9,7 @@ using SepandAsa.Bazargani.Common.Domain.PurchaseSourceManagement;
 
 namespace SAJApi.Controllers
 {
-    [EnableCors(origins: "http://localhost:8100,http://192.168.1.8:888,http://172.20.0.245:888", headers: "*", methods: "*")]
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
     public class manbaKharidController : ApiController
     {
         // GET: api/manbaKharid
@@ -22,12 +18,12 @@ namespace SAJApi.Controllers
             try
             {
                 var count = ManbaKharidsManager.Instance.GetDataCount();
-                var result = new SimpleResult() {message = count, result = "200"};
+                var result = new SimpleResult {message = count, result = "200"};
                 return JsonConvert.SerializeObject(result);
             }
             catch (Exception ex)
             {
-                var result = new SimpleResult() { message = ex.Message, result = "500" };
+                var result = new SimpleResult { message = ex.Message, result = "500" };
                 return JsonConvert.SerializeObject(result);
             }
         }
@@ -39,11 +35,11 @@ namespace SAJApi.Controllers
             {
                 var ds = CustomQueries.GetManbaKharidByPage(pageNumber, pageCount);
                 var result = Utils.CreateListFromTable<manbaKharidModel>(ds.ManbaKharids);
-                return JsonConvert.SerializeObject(new SimpleResult() { message = result, result = "200" });
+                return JsonConvert.SerializeObject(new SimpleResult { message = result, result = "200" });
             }
             catch (Exception ex)
             {
-                var result = new SimpleResult() { message = ex.Message, result = "500" };
+                var result = new SimpleResult { message = ex.Message, result = "500" };
                 return JsonConvert.SerializeObject(result);
             }
         }

@@ -1,16 +1,16 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using SepandAsa.Shared.Business.Security;
-using SepandAsa.Transportation.Light.Domain;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
+using SepandAsa.Shared.Business.Security;
+using SepandAsa.Transportation.Light.Domain;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class CarRequestController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class CarRequestController : ApiController
   {
     [Route("api/CarRequest/GetByRequestId/{requestId}/{token}")]
     [HttpGet]
@@ -18,22 +18,22 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         var byRequestId =
             new CarRequestManager().GetAllCarRequestForMissionByPersonelNo(UserAccount.Instance.CurrentUser.EmployeeId);
         return new SimpleResult
         {
           result = "200",
-          message = (object) byRequestId
+          message = byRequestId
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -44,20 +44,20 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         AgGridModel userRequests = new CarRequestManager().GetAllCarRequestForMissionByPersonelNo(UserAccount.Instance.CurrentUser.EmployeeId);
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) userRequests,
+          message = userRequests,
           result = "200"
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.10"
         };
       }
@@ -69,27 +69,27 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         long headerId=0;
         IEnumerable<AttachmentGroupModel> attachmentGroupModels = null;
             //ArchivesManager.GroupAttachmentsList(new CarRequestManager().GetAttachments(requestId, out headerId));
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) new DataRowAttachmentsModel()
+          message = new DataRowAttachmentsModel
           {
-            headerId = headerId,
-            list = attachmentGroupModels
+              headerId = headerId,
+              list = attachmentGroupModels
           }
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.35",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -100,20 +100,20 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         List<KeyValueModel> generalCarTypes = new CarRequestManager().GetGeneralCarTypes(UserAccount.Instance.CurrentUser.UserId);
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) generalCarTypes,
+          message = generalCarTypes,
           result = "200"
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.10"
         };
       }
@@ -125,9 +125,9 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         List<KeyValueModel> locationForMission = new CarRequestManager().GetAllLocationForMission();
-        return new SimpleResult()
+        return new SimpleResult
         {
           message = locationForMission,
           result = "200"
@@ -135,10 +135,10 @@ namespace SAJApi.Controllers
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.13"
         };
       }
@@ -150,23 +150,23 @@ namespace SAJApi.Controllers
       {
         using (CarRequestManager carRequestManager = new CarRequestManager())
         {
-          Utils.AutoLoginWithToken(request.token, this.Request.GetClientIpAddress());
+          Utils.AutoLoginWithToken(request.token, Request.GetClientIpAddress());
           CarRequestForMissionInfo table = carRequestManager.ConvertModelToTable(request);
-          carRequestManager.AddRequestItems(table, (IEnumerable<string>) request.Locations);
+          carRequestManager.AddRequestItems(table, request.Locations);
           carRequestManager.SaveRequest(UserAccount.Instance.CurrentUser.EmployeeId, table);
-          return new SimpleResult()
+          return new SimpleResult
           {
-            message = (object) "درخواست شما با شماره 111 ذخیره شد",
+            message = "درخواست شما با شماره 111 ذخیره شد",
             result = "200"
           };
         }
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.11"
         };
       }
@@ -178,11 +178,6 @@ namespace SAJApi.Controllers
 
     public void Delete(int id)
     {
-    }
-
-    public CarRequestController()
-    {
-      
     }
   }
 }

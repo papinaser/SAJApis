@@ -1,16 +1,16 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using SepandAsa.Shared.Business.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
+using SepandAsa.Shared.Business.Security;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class RequestKalaController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class RequestKalaController : ApiController
   {
     [Route("api/RequestKala/GetAllByUserName/{token}")]
     [HttpGet]
@@ -18,21 +18,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         AgGridModel userReqquests = RequestKalaManager.GetUserReqquests(UserAccount.Instance.CurrentUser.UserName);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) userReqquests
+          message = userReqquests
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -43,26 +43,26 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         long headerId;
         IEnumerable<AttachmentGroupModel> attachmentGroupModels = ArchivesManager.GroupAttachmentsList(RequestKalaManager.GetAttachments(requestKalaId, out headerId));
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) new DataRowAttachmentsModel()
+          message = new DataRowAttachmentsModel
           {
-            headerId = headerId,
-            list = attachmentGroupModels
+              headerId = headerId,
+              list = attachmentGroupModels
           }
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.35",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -73,9 +73,9 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         var orderDescs = RequestKalaManager.GetOrderDescs().ToList();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
           message = orderDescs
@@ -84,10 +84,10 @@ namespace SAJApi.Controllers
       catch (Exception ex)
       {
         Utils.log.Error(ex.Message, ex);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -98,21 +98,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         List<KeyValueModel> units = RequestKalaManager.GetUnits();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) units
+          message = units
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.34",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -123,21 +123,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<KeyValueModel> stocks = RequestKalaManager.GetStocks();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) stocks
+          message = stocks
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.34",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -148,21 +148,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<KeyValueModel> tarhs = RequestKalaManager.GetTarhs();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) tarhs
+          message = tarhs
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.34",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -173,21 +173,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<KeyValueModel> projects = RequestKalaManager.GetProjects();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) projects
+          message = projects
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.34",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -198,21 +198,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         IEnumerable<KeyValueModel> subProjects = RequestKalaManager.GetSubProjects();
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) subProjects
+          message = subProjects
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.34",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -223,21 +223,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         RequestKalaModel headerByRequestKalaId = RequestKalaManager.GetHeaderByRequestKalaId(requestId);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) headerByRequestKalaId
+          message = headerByRequestKalaId
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -248,21 +248,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         AgGridModel itemsByRequestKalaId = RequestKalaManager.GetItemsByRequestKalaId(requestId);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) itemsByRequestKalaId
+          message = itemsByRequestKalaId
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -271,21 +271,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(saveModel.username, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(saveModel.username, Request.GetClientIpAddress());
         string str = RequestKalaManager.SaveRequest(saveModel, false);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) str
+          message = str
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -294,21 +294,21 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(saveModel.username, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(saveModel.username, Request.GetClientIpAddress());
         string str = RequestKalaManager.SaveRequest(saveModel, true);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) str
+          message = str
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -317,9 +317,9 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         object obj = RequestKalaManager.DeleteById(id);
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
           message = obj
@@ -327,18 +327,13 @@ namespace SAJApi.Controllers
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex.Message, ex);
+        return new SimpleResult
         {
           result = "500.33",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
-    }
-
-    public RequestKalaController()
-    {
-      
     }
   }
 }

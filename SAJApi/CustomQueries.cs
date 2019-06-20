@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Web;
+﻿using System.Data;
 using SepandAsa.Bazargani.Common.DataAccess.PurchaseSourceManagement;
 using SepandAsa.Bazargani.Common.Domain.PurchaseSourceManagement;
 using SepandAsa.Shared.DataAccess;

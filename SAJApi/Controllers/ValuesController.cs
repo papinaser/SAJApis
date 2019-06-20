@@ -13,10 +13,10 @@ namespace SAJApi.Controllers
   {
     public IEnumerable<string> Get()
     {
-      return (IEnumerable<string>) new string[2]
+      return new string[2]
       {
-        "value1",
-        "value2"
+          "value1",
+          "value2"
       };
     }
 
@@ -35,11 +35,6 @@ namespace SAJApi.Controllers
 
     public void Delete(int id)
     {
-    }
-
-    public ValuesController()
-    {
-      
     }
   }
 }

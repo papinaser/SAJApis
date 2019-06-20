@@ -2383,8 +2383,8 @@ namespace SAJApi.Custom
             {
                 result.Add(new KeyValueModel
                 {
-                    key = type.SetTypeItemIdInParameter.ToString(),
-                    value = type.SetItemTypeName
+                    value = type.SetTypeItemIdInParameter.ToString(),
+                    label = type.SetItemTypeName
                 });
             }
             return result;
@@ -2422,8 +2422,8 @@ namespace SAJApi.Custom
                 }
                 result.Add(new KeyValueModel
                 {
-                    key = royakrdRow.RoykardConfigId.ToString(),
-                    value = title
+                    value = royakrdRow.RoykardConfigId.ToString(),
+                    label = title
                 });
             }
 

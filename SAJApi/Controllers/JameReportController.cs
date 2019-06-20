@@ -1,30 +1,24 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using SepandAsa.RepairManagment.Business;
-using SepandAsa.Shared.Business;
-using SepandAsa.Shared.Business.Common;
-using SepandAsa.Shared.Business.Reports;
-using SepandAsa.Shared.Business.SubSystemManagement;
-using SepandAsa.Shared.Domain;
-using SepandAsa.Shared.Domain.Reports;
-using SepandAsa.Shared.Domain.SubSystemManagement;
-using Stimulsoft.Base.Drawing;
-using Stimulsoft.Report;
-using Stimulsoft.Report.Components;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
+using SepandAsa.RepairManagment.Business;
+using SepandAsa.Shared.Business;
+using SepandAsa.Shared.Business.Reports;
+using SepandAsa.Shared.Domain;
+using SepandAsa.Shared.Domain.Reports;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Components;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class JameReportController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class JameReportController : ApiController
   {
     [Route("api/JameReport/GetReportTree/{token}")]
     [HttpGet]
@@ -32,8 +26,8 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
-        JameReportGroupsInfo currentGroups = JameReportGroupsManager.Instance.GetCurrentGroups((ISubSystem) RepairManagmentSubSystem.Instance, false);
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
+        JameReportGroupsInfo currentGroups = JameReportGroupsManager.Instance.GetCurrentGroups(RepairManagmentSubSystem.Instance, false);
         List<treeModel> result = new List<treeModel>();
         using (IEnumerator<JameReportGroupsInfo.JameReportGroupsRow> enumerator = ((IEnumerable<JameReportGroupsInfo.JameReportGroupsRow>) currentGroups.JameReportGroups).Where(r =>
         {
@@ -42,22 +36,22 @@ namespace SAJApi.Controllers
             return false;
         }).GetEnumerator())
         {
-          while (((IEnumerator) enumerator).MoveNext())
-            this.AddNodes(enumerator.Current, result, currentGroups);
+          while (enumerator.MoveNext())
+            AddNodes(enumerator.Current, result, currentGroups);
         }
-        return new SimpleResult()
+        return new SimpleResult
         {
           result = "200",
-          message = (object) result
+          message = result
         };
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex, ex);
-        return new SimpleResult()
+        Utils.log.Error(ex, ex);
+        return new SimpleResult
         {
           result = "500",
-          message = (object) ex.Message
+          message = ex.Message
         };
       }
     }
@@ -67,24 +61,24 @@ namespace SAJApi.Controllers
       List<treeModel> result,
       JameReportGroupsInfo allTree)
     {
-      treeModel treeModel = new treeModel()
+      treeModel treeModel = new treeModel
       {
         id = parent.JameReportGroupId.ToString(),
         title = parent.GroupName
       };
       treeModel.hasChildren = parent.IsReportIdNull();
       parent.IsReportIdNull();
-      IEnumerable<JameReportGroupsInfo.JameReportGroupsRow> jameReportGroupsRows = ((IEnumerable<JameReportGroupsInfo.JameReportGroupsRow>) allTree.JameReportGroups).Where<JameReportGroupsInfo.JameReportGroupsRow>((Func<JameReportGroupsInfo.JameReportGroupsRow, bool>) (r =>
+      IEnumerable<JameReportGroupsInfo.JameReportGroupsRow> jameReportGroupsRows = ((IEnumerable<JameReportGroupsInfo.JameReportGroupsRow>) allTree.JameReportGroups).Where(r =>
       {
-        if (!r.IsParentIdNull())
-          return r.ParentId == parent.JameReportGroupId;
-        return false;
-      }));
+          if (!r.IsParentIdNull())
+              return r.ParentId == parent.JameReportGroupId;
+          return false;
+      });
       List<treeModel> result1 = new List<treeModel>();
       using (IEnumerator<JameReportGroupsInfo.JameReportGroupsRow> enumerator = jameReportGroupsRows.GetEnumerator())
       {
-        while (((IEnumerator) enumerator).MoveNext())
-          this.AddNodes(enumerator.Current, result1, allTree);
+        while (enumerator.MoveNext())
+          AddNodes(enumerator.Current, result1, allTree);
       }
       treeModel.childs = result1;
       result.Add(treeModel);
@@ -103,33 +97,33 @@ namespace SAJApi.Controllers
         startDate = startDate.Replace("_", "/");
         endDate = endDate.Replace("_", "/");
         long num = long.Parse(reportId);
-        JameReportGroupsInfo dataById = ((BusinessManager) JameReportGroupsManager.Instance).GetDataById((object) num) as JameReportGroupsInfo;
+        JameReportGroupsInfo dataById = JameReportGroupsManager.Instance.GetDataById(num) as JameReportGroupsInfo;
         JameReportGroupsInfo.JameReportGroupsRow jameReportGroupsRow = dataById.JameReportGroups[0];
         if (dataById.JameReportGroups.Count == 0)
         {
           simpleResult.result = "500.17";
-          simpleResult.message = (object) "شناسه گزارش نامعتبر است";
+          simpleResult.message = "شناسه گزارش نامعتبر است";
         }
         else if (jameReportGroupsRow.IsReportIdNull())
         {
           simpleResult.result = "500.17";
-          simpleResult.message = (object) "لطفا یک گزارش از درختواره انتخاب کنید";
+          simpleResult.message = "لطفا یک گزارش از درختواره انتخاب کنید";
         }
-        SubSystemSpecialViewInfo.SubSystemSpecialViewRow systemSpecialViewRow = ((SubSystemSpecialViewManager) SubSystemSpecialViewManager.Instance).GetById(jameReportGroupsRow.SpecialViewId).SubSystemSpecialView[0];
-        if (((IEnumerable<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>) ((SubSystemSpecialViewManager) SubSystemSpecialViewManager.Instance).GetSpecialViewDefinition(systemSpecialViewRow).SubSystemSpecialViewDefinition).All<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>((Func<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow, bool>) (r =>
+        SubSystemSpecialViewInfo.SubSystemSpecialViewRow systemSpecialViewRow = SubSystemSpecialViewManager.Instance.GetById(jameReportGroupsRow.SpecialViewId).SubSystemSpecialView[0];
+        if (SubSystemSpecialViewManager.Instance.GetSpecialViewDefinition(systemSpecialViewRow).SubSystemSpecialViewDefinition.All(r =>
         {
-          if (!r.IsIsColDateNull())
-            return !r.IsColDate;
-          return true;
-        })))
+            if (!r.IsIsColDateNull())
+                return !r.IsColDate;
+            return true;
+        }))
         {
           simpleResult.result = "500.17";
-          simpleResult.message = (object) "فیلد تاریخ در تعاریف ویوی خاص مشخص نشده است";
+          simpleResult.message = "فیلد تاریخ در تعاریف ویوی خاص مشخص نشده است";
         }
         if (startDate.Split('/')[0] != endDate.Split('/')[0])
         {
           simpleResult.result = "500.17";
-          simpleResult.message = (object) "باید سال تاریخ شروع و پایان یکی باشند";
+          simpleResult.message = "باید سال تاریخ شروع و پایان یکی باشند";
         }
         if (string.IsNullOrEmpty(simpleResult.result))
           simpleResult.result = "200";
@@ -137,7 +131,7 @@ namespace SAJApi.Controllers
       catch (Exception ex)
       {
         simpleResult.result = "500.17";
-        simpleResult.message = (object) ex.Message;
+        simpleResult.message = ex.Message;
       }
       return simpleResult;
     }
@@ -150,7 +144,7 @@ namespace SAJApi.Controllers
       string reportId,
       string token)
     {
-      return this.GetReportOrXml(token, startDate, endDate, reportId, false);
+      return GetReportOrXml(token, startDate, endDate, reportId, false);
     }
 
     [Route("api/JameReports/GetReportXml/{startDate}/{endDate}/{reportId}/{token}")]
@@ -161,7 +155,7 @@ namespace SAJApi.Controllers
       string reportId,
       string token)
     {
-      return this.GetReportOrXml(token, startDate, endDate, reportId, true);
+      return GetReportOrXml(token, startDate, endDate, reportId, true);
     }
 
     private IHttpActionResult GetReportOrXml(
@@ -175,36 +169,36 @@ namespace SAJApi.Controllers
       endDate = endDate.Replace("_", "/");
       long num1 = long.Parse(reportId);
       JameReportGroupsInfo.JameReportGroupsRow 
-          jameReportGroupsRow = (((BusinessManager) JameReportGroupsManager.Instance)
-              .GetDataById((object) num1) as JameReportGroupsInfo).JameReportGroups[0];
+          jameReportGroupsRow = (JameReportGroupsManager.Instance
+              .GetDataById(num1) as JameReportGroupsInfo).JameReportGroups[0];
       string str1 = "";
       if (jameReportGroupsRow != null && !jameReportGroupsRow.IsReportIdNull())
       {
-        SubSystemSpecialViewInfo.SubSystemSpecialViewRow systemSpecialViewRow = ((SubSystemSpecialViewManager) SubSystemSpecialViewManager.Instance).GetById(jameReportGroupsRow.SpecialViewId).SubSystemSpecialView[0];
-        ReportInfo byReportId = ((ReportMaintenance) ReportMaintenance.Instance).GetByReportId(jameReportGroupsRow.ReportId);
-        SubSystemSpecialViewManager.SpecialViewSearchManager viewSearchManager = ((SubSystemSpecialViewManager) SubSystemSpecialViewManager.Instance).GetSpecialViewSearchManager(systemSpecialViewRow);
-        SubSystemSpecialViewInfo specialViewDefinition = ((SubSystemSpecialViewManager) SubSystemSpecialViewManager.Instance).GetSpecialViewDefinition(systemSpecialViewRow);
-        if (((IEnumerable<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>) specialViewDefinition.SubSystemSpecialViewDefinition).Any<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>((Func<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow, bool>) (r =>
+        SubSystemSpecialViewInfo.SubSystemSpecialViewRow systemSpecialViewRow = SubSystemSpecialViewManager.Instance.GetById(jameReportGroupsRow.SpecialViewId).SubSystemSpecialView[0];
+        ReportInfo byReportId = ReportMaintenance.Instance.GetByReportId(jameReportGroupsRow.ReportId);
+        SubSystemSpecialViewManager.SpecialViewSearchManager viewSearchManager = SubSystemSpecialViewManager.Instance.GetSpecialViewSearchManager(systemSpecialViewRow);
+        SubSystemSpecialViewInfo specialViewDefinition = SubSystemSpecialViewManager.Instance.GetSpecialViewDefinition(systemSpecialViewRow);
+        if (specialViewDefinition.SubSystemSpecialViewDefinition.Any(r =>
         {
-          if (!r.IsIsColDateNull())
-            return r.IsColDate;
-          return false;
-        })) && !byReportId.Report[0].IsIsDateRangeReportNull() && byReportId.Report[0].IsDateRangeReport)
+            if (!r.IsIsColDateNull())
+                return r.IsColDate;
+            return false;
+        }) && !byReportId.Report[0].IsIsDateRangeReportNull() && byReportId.Report[0].IsDateRangeReport)
         {
           int num2 = byReportId.Report[0].IsDateRangeTypeIdNull() ? 0 : byReportId.Report[0].DateRangeTypeId;
           if (startDate.Split('/')[0] != endDate.Split('/')[0])
             throw new ApplicationException("باید سال تاریخ شروع و پایان یکی باشند");
-          string newValue = this.SetJameReportFromYear(startDate.Split('/')[0], byReportId.Report[0]);
+          string newValue = SetJameReportFromYear(startDate.Split('/')[0], byReportId.Report[0]);
           string str2 = newValue + "/01/01";
           string oldValue = startDate.Split('/')[0];
           string str3 = startDate.Replace(oldValue, newValue);
           string str4 = endDate.Replace(oldValue, newValue);
-          SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow viewDefinitionRow = ((IEnumerable<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>) specialViewDefinition.SubSystemSpecialViewDefinition).First<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow>((Func<SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow, bool>) (r =>
+          SubSystemSpecialViewInfo.SubSystemSpecialViewDefinitionRow viewDefinitionRow = specialViewDefinition.SubSystemSpecialViewDefinition.First(r =>
           {
-            if (!r.IsIsColDateNull())
-              return r.IsColDate;
-            return false;
-          }));
+              if (!r.IsIsColDateNull())
+                  return r.IsColDate;
+              return false;
+          });
           str1 = viewDefinitionRow.ColumName;
           string str5 = string.Format("({0}>='{1}' AND {0} <='{2}')",viewDefinitionRow.ColumName, startDate, endDate);
           if (num2 == 9)
@@ -219,15 +213,15 @@ namespace SAJApi.Controllers
             string str6 = string.Join(" IS NOT NULL OR ", byReportId.Report[0].FilterNotNullsBeforeRange.Split(',')) + " IS NOT NULL";
             str5 = string.Format("({0} OR ({1}>=N'{2}' AND {1}<=N'{3}')) AND ({4})", (object) str5, (object) viewDefinitionRow.ColumName, (object) str2, (object) startDate, (object) str6);
           }
-          ((BaseSearchManager) viewSearchManager).Search(str5);
-          DataView searchDataView = ((BaseSearchManager) viewSearchManager).GetSearchDataView();
+          viewSearchManager.Search(str5);
+          DataView searchDataView = viewSearchManager.GetSearchDataView();
           if (xml)
           {
             string fileFullPathAppData = Utils.GetFileFullPathAppData("temp" + token + ".xml");
             FileStream fileStream = new FileStream(fileFullPathAppData, FileMode.Create);
-            searchDataView.Table.WriteXml((Stream) fileStream, XmlWriteMode.IgnoreSchema);
+            searchDataView.Table.WriteXml(fileStream, XmlWriteMode.IgnoreSchema);
             fileStream.Close();
-            return (IHttpActionResult) new FileResult(fileFullPathAppData, (string) null);
+            return new FileResult(fileFullPathAppData, null);
           }
           ReportInfo.ReportRow reportRow = byReportId.Report[0];
           StiReport report = new StiReport();
@@ -236,9 +230,9 @@ namespace SAJApi.Controllers
             report.Compile();
           if (!string.IsNullOrEmpty(startDate))
             byReportId.FilterRow.AddFilterRowRow(startDate, endDate);
-          ReportInfo.FilterRowRow filterRowRow = byReportId.FilterRow.Count > 0 ? byReportId.FilterRow[0] : (ReportInfo.FilterRowRow) null;
-          RepairManagmentSubSystem.Instance.CustomizeReport(byReportId.Report[0], report, (DataRow) filterRowRow, searchDataView);
-          SepandAsa.Shared.Business.Reports.Report.SetCurDateTimeInReport(report);
+          ReportInfo.FilterRowRow filterRowRow = byReportId.FilterRow.Count > 0 ? byReportId.FilterRow[0] : null;
+          RepairManagmentSubSystem.Instance.CustomizeReport(byReportId.Report[0], report, filterRowRow, searchDataView);
+          Report.SetCurDateTimeInReport(report);
           if (report.IsVariableExist("vStartDate"))
             report["vStartDate"]= startDate;
           if (report.IsVariableExist("vEndDate"))
@@ -249,10 +243,10 @@ namespace SAJApi.Controllers
             page.Rendering+=page_Rendering;
           report.Render();
           string tempFileName = Utils.GetTempFileName(token, "rpt", "pdf");
-          return (IHttpActionResult) new FileResult(Utils.ConvertStiToPdf(report, tempFileName), (string) null);
+          return new FileResult(Utils.ConvertStiToPdf(report, tempFileName), null);
         }
       }
-      return (IHttpActionResult) null;
+      return null;
     }
 
     private void page_Rendering(object sender, EventArgs e)
@@ -270,11 +264,6 @@ namespace SAJApi.Controllers
       if (reportRow.IsMultiYearCountNull())
         return year;
       return (int.Parse(year) - (reportRow.MultiYearCount - 1)).ToString();
-    }
-
-    public JameReportController()
-    {
-      
     }
   }
 }

@@ -1,7 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using Newtonsoft.Json;
 using SAJApi.Models;
+using SepandAsa.Shared.Business.Attachments;
 using SepandAsa.Shared.Business.Security;
-using SepandAsa.Shared.Business.SubSystemManagement;
 using SepandAsa.Shared.Business.Utilities;
 using SepandAsa.Shared.DataAccess;
 using SepandAsa.Shared.Domain;
@@ -18,10 +22,6 @@ using SepandAsa.Transportation.Light.Domain;
 using SepandAsa.Transportation.Light.Domain.Web;
 using SepandAsa.Utility;
 using SepandAsa.UtilityClasses;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 
 namespace SAJApi.Custom
 {
@@ -46,10 +46,10 @@ namespace SAJApi.Custom
         return ((IEnumerable<CarTypeGeneralNamesInfo.CarTypeGeneralNamesRow>) (CarTypesInGeneralManager.Instance
                 .GetAllData() as CarTypeGeneralNamesInfo).CarTypeGeneralNames)
             .Select(
-                ct => new KeyValueModel()
+                ct => new KeyValueModel
                 {
-                    key = ct.CarTypeGeneralNameId.ToString(),
-                    value = ct.CarTypeGeneralNameTitle
+                    value = ct.CarTypeGeneralNameId.ToString(),
+                    label = ct.CarTypeGeneralNameTitle
                 }).ToList();
     }
 
@@ -61,11 +61,11 @@ namespace SAJApi.Custom
       foreach (string str in strings)
       {
         string dn = str;
-        CarTypeInfo.CarTypeRow carTypeRow = ((IEnumerable<CarTypeInfo.CarTypeRow>) allData.CarType).First<CarTypeInfo.CarTypeRow>((Func<CarTypeInfo.CarTypeRow, bool>) (r => r.Name == dn));
-        keyValueModelList.Add(new KeyValueModel()
+        CarTypeInfo.CarTypeRow carTypeRow = allData.CarType.First(r => r.Name == dn);
+        keyValueModelList.Add(new KeyValueModel
         {
-          key = carTypeRow.CarTypeId.ToString(),
-          value = carTypeRow.CarTypeName
+          value = carTypeRow.CarTypeId.ToString(),
+          label = carTypeRow.CarTypeName
         });
       }
       return keyValueModelList;
@@ -76,25 +76,25 @@ namespace SAJApi.Custom
       return (LocationManager.Instance.GetAllData() as LocationInfo)
           .Location.Select(r => new KeyValueModel
       {
-          key = r.LocationId.ToString(),
-          value = r.Name
+          value = r.LocationId.ToString(),
+          label = r.Name
       }).ToList();
     }
 
     public void AddRequestItems(CarRequestForMissionInfo newReq, IEnumerable<string> destinations)
     {
-      ((DataTable) newReq.CarRequestForMissionItems).Clear();
-      string[] strArray = destinations as string[] ?? destinations.ToArray<string>();
-      int num = ((IEnumerable<string>) strArray).Count<string>();
+      newReq.CarRequestForMissionItems.Clear();
+      string[] strArray = destinations as string[] ?? destinations.ToArray();
+      int num = strArray.Count();
       for (int index = 0; index < strArray.Length; ++index)
       {
-        LocationInfo locationInfo = ((BusinessManager) LocationManager.Instance)
-            .Search(string.Format("Name=N'{0}'", (object) strArray[index])) as LocationInfo;
+        LocationInfo locationInfo = LocationManager.Instance
+            .Search(string.Format("Name=N'{0}'", strArray[index])) as LocationInfo;
         if (locationInfo.Location.Count== 0)
           throw new ApplicationException("مقصد انتخاب شده معتبر نمی باشد " + strArray[index]);
         if (index == 0)
         {
-          AddNewPath(newReq, (long) ((DefaultsManager) DefaultsManager.Instance)
+          AddNewPath(newReq, DefaultsManager.Instance
               .Defaults.MissionCityId, locationInfo.Location[0].LocationId);
         }
         else
@@ -107,14 +107,14 @@ namespace SAJApi.Custom
           if (index + 1 != num)
           {
             long slId = locationId1;
-            long locationId3 = (((BusinessManager) LocationManager.Instance)
-                .Search(string.Format("Name=N'{0}'", (object) strArray[index + 1])) as LocationInfo).Location[0].LocationId;
-            this.AddNewPath(newReq, slId, locationId3);
+            long locationId3 = (LocationManager.Instance
+                .Search(string.Format("Name=N'{0}'", strArray[index + 1])) as LocationInfo).Location[0].LocationId;
+            AddNewPath(newReq, slId, locationId3);
           }
         }
         if (index + 1 == num)
-          this.AddNewPath(newReq, locationInfo.Location[0].LocationId, 
-              (long)DefaultsManager.Instance.Defaults.MissionCityId);
+          AddNewPath(newReq, locationInfo.Location[0].LocationId, 
+              DefaultsManager.Instance.Defaults.MissionCityId);
       }
     }
 
@@ -126,7 +126,7 @@ namespace SAJApi.Custom
       if (attachedFile == null)
         return 0;
       AttachmentsInfo attachmentsHeader = 
-          SepandAsa.Shared.Business.Attachments.Attachments
+          Attachments
               .CreateAttachmentsHeader((InfoTypes) 19, reqId.ToString());
       AttachmentsInfo.AttachmentsDetailRow attachmentsDetailRow = attachmentsHeader.AttachmentsDetail
           .NewAttachmentsDetailRow();
@@ -145,7 +145,7 @@ namespace SAJApi.Custom
       attachmentsRow.UserId=UserAccount.Instance.CurrentUser.UserId;
       attachmentsRow.LastAttachmentDataChangeDate=DateTime.Now;
       attachmentsHeader.Attachments.AddAttachmentsRow(attachmentsRow);
-      SepandAsa.Shared.Business.Attachments.Attachments.CreateAttachment(attachmentsHeader);
+      Attachments.CreateAttachment(attachmentsHeader);
       return attachmentsHeader.AttachmentsHeader[0].AttachmentsHeaderId;
     }
 
@@ -163,8 +163,8 @@ namespace SAJApi.Custom
     public CarRequestForMissionInfo ConvertModelToTable(
       CarRequestModel model)
     {
-      CarRequestForMissionInfo requestForMissionInfo = ((BusinessManager) CarRequestForMissionManager.Instance).MakeNewData() as CarRequestForMissionInfo;
-      DataSetHelper.CopyRowInfo(((DataTable) JsonConvert.DeserializeObject(JsonConvert.SerializeObject((object) model), typeof (DataTable))).Rows[0], (DataRow) requestForMissionInfo.CarRequestForMission[0]);
+      CarRequestForMissionInfo requestForMissionInfo = CarRequestForMissionManager.Instance.MakeNewData() as CarRequestForMissionInfo;
+      DataSetHelper.CopyRowInfo(((DataTable) JsonConvert.DeserializeObject(JsonConvert.SerializeObject(model), typeof (DataTable))).Rows[0], requestForMissionInfo.CarRequestForMission[0]);
       return requestForMissionInfo;
     }
 
@@ -197,9 +197,9 @@ namespace SAJApi.Custom
 
     public void SaveRequest(long personelNo, CarRequestForMissionInfo requestInfo)
     {
-      this.VerifyWebRequestForSave(requestInfo);
-      this.SetDefaults(personelNo, requestInfo);
-      ((BusinessManager) CarRequestForMissionManager.Instance).SaveInfo((DataSet) requestInfo);
+      VerifyWebRequestForSave(requestInfo);
+      SetDefaults(personelNo, requestInfo);
+      CarRequestForMissionManager.Instance.SaveInfo(requestInfo);
     }
 
     public int GetRequestState(long carRequestId)
@@ -210,12 +210,12 @@ namespace SAJApi.Custom
 
     public void VerifyCanPersonelRegisterNewCarRequest(long personelNo)
     {
-      WebConfigsInfo.SalaryWagePersonelsRow personelById = this.GetPersonelById(personelNo);
+      WebConfigsInfo.SalaryWagePersonelsRow personelById = GetPersonelById(personelNo);
       if (personelById == null)
         throw new ApplicationException("پرسنل باکدپرسنلی مورد نظریافت نشد");
       if (personelById.IsHasCarRequestPermitNull() || !personelById.HasCarRequestPermit)
         throw new ApplicationException("مجوز ثبت درخواست برای پرسنل مورد نظر صادرنشده است");
-      WebConfigsInfo webRequestConfig = ((WebConfigsManager) WebConfigsManager.Instance).GetWebRequestConfig(SepandServer.CurDate);
+      WebConfigsInfo webRequestConfig = WebConfigsManager.Instance.GetWebRequestConfig(SepandServer.CurDate);
       if (webRequestConfig == null || webRequestConfig.WebRequestConfigs.Count== 0
                                    || !DateTimeUtil.TimesHaveConflict
                                        (webRequestConfig.WebRequestConfigs[0].CarReqestStartTime, 
@@ -241,10 +241,10 @@ namespace SAJApi.Custom
           || string.IsNullOrEmpty(dsRequestInfo.Tables["CarRequestForMission"].Rows[0]["CarTypeName"].ToString()))
         throw new ApplicationException("نوع خودور در ستون CarTypeName مشخص نشده است");
       object obj = dsRequestInfo.Tables["CarRequestForMission"].Rows[0]["CarTypeName"];
-      DataRow[] dataRowArray = ((DataTable) (((BusinessManager) CarTypeManager.Instance).GetAllData() as CarTypeInfo).CarType).Select("CarTypeName LIKE '" + obj + "*'");
+      DataRow[] dataRowArray = (CarTypeManager.Instance.GetAllData() as CarTypeInfo).CarType.Select("CarTypeName LIKE '" + obj + "*'");
       if (!dataRowArray.Any())
         throw new ApplicationException("نوع خودروی انتخاب شده در بانک حمل و نقل نامعتبر است");
-      ((DataRow) requestForMissionInfo.CarRequestForMission[0])["CarTypeId"] = dataRowArray[0]["CarTypeId"];
+      requestForMissionInfo.CarRequestForMission[0]["CarTypeId"] = dataRowArray[0]["CarTypeId"];
       if (requestForMissionInfo.CarRequestForMission[0].IsMissionTypeIdNull() || 
           requestForMissionInfo.CarRequestForMission[0].MissionTypeId!= (int)MissionTypes.Inside 
           && requestForMissionInfo.CarRequestForMission[0].MissionTypeId != (int)MissionTypes.Outside)
@@ -252,7 +252,7 @@ namespace SAJApi.Custom
       requestForMissionInfo.CarRequestForMission[0].CarRequestForMissionId=requestForMissionId;
       if (requestForMissionInfo.CarRequestForMission.Count> 0)
       {
-        WebConfigsInfo.SalaryWagePersonelsRow personelById = this.GetPersonelById((long) requesterPersonelNo);
+        WebConfigsInfo.SalaryWagePersonelsRow personelById = GetPersonelById(requesterPersonelNo);
         if (personelById == null)
           throw new ApplicationException("کدپرسنلی موردنظرثبت نشده است");
         if (personelById.IsOrganizationUnitIdNull())
@@ -268,12 +268,12 @@ namespace SAJApi.Custom
           if (row.RowState != DataRowState.Deleted)
           {
             CarRequestForMissionInfo.CarRequestForMissionItemsRow forMissionItemsRow1 = requestForMissionInfo.CarRequestForMissionItems.NewCarRequestForMissionItemsRow();
-            DataSetHelper.CopyRowInfo(row, (DataRow) forMissionItemsRow1);
+            DataSetHelper.CopyRowInfo(row, forMissionItemsRow1);
             forMissionItemsRow1.CarRequestForMissionId=requestForMissionInfo.CarRequestForMission[0].CarRequestForMissionId;
             CarRequestForMissionInfo.CarRequestForMissionItemsRow forMissionItemsRow2 = forMissionItemsRow1;
             int num2;
             forMissionItemsRow1.ItemId=num2 = num1++;
-            long num3 = (long) num2;
+            long num3 = num2;
             forMissionItemsRow2.RequestItemId=num3;
             forMissionItemsRow1.SourceLocationId=(long) row["SourceLocationId"];
             forMissionItemsRow1.DestinationLocationId=(long) row["DestinationLocationId"];
@@ -292,19 +292,19 @@ namespace SAJApi.Custom
         WebConfigsInfo.SalaryWagePersonelsDataTable byPersonelNo = new SalaryWagePersonelsDB().GetByPersonelNo((int) personelNo);
         if (byPersonelNo.Count> 0)
           return byPersonelNo[0];
-        return (WebConfigsInfo.SalaryWagePersonelsRow) null;
+        return null;
       }
     }
 
     public DataTable GetCarRequestStateByRequestId(long carRequestId)
     {
-      if ((((BusinessManager) CarRequestForMissionManager.Instance).GetDataById((object) carRequestId) as CarRequestForMissionInfo).CarRequestForMission[0].CarRequestTypeId != (int)CarRequestForMissionTypes.ByWeb)
+      if ((CarRequestForMissionManager.Instance.GetDataById(carRequestId) as CarRequestForMissionInfo).CarRequestForMission[0].CarRequestTypeId != (int)CarRequestForMissionTypes.ByWeb)
         throw new ApplicationException("درخواست مورد نظر شما توسط وب ثبت نشده است");
-      CarRequestForMissionInfo.viewCarRequestStateFullRow requestState = ((CarRequestForMissionManager) CarRequestForMissionManager.Instance).GetRequestState(carRequestId);
+      CarRequestForMissionInfo.viewCarRequestStateFullRow requestState = CarRequestForMissionManager.Instance.GetRequestState(carRequestId);
       CarRequestForMissionInfo.viewCarRequestStateFullDataTable requestStateFull = 
           new CarRequestForMissionInfo().viewCarRequestStateFull;
-      ((DataTable) requestStateFull).ImportRow((DataRow) requestState);
-      return (DataTable) requestStateFull;
+      requestStateFull.ImportRow(requestState);
+      return requestStateFull;
     }
 
     public void Dispose()

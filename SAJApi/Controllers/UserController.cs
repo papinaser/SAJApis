@@ -1,26 +1,26 @@
-﻿using SAJApi.Custom;
-using SAJApi.Models;
-using SepandAsa.Shared.Business.Security;
-using SepandAsa.Shared.Business.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using SAJApi.Custom;
+using SAJApi.Models;
+using SepandAsa.Shared.Business.Security;
+using SepandAsa.Shared.Business.Utilities;
 
 namespace SAJApi.Controllers
 {
-  [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://192.168.1.8:3000,http://172.20.0.245:888", "*", "*")]
-  public class UserController : ApiController
+    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    public class UserController : ApiController
   {
     [Route("api/User/GetCurrentDate")]
     [HttpGet]
     public SimpleResult GetCurrentDate()
     {
       string curDate = SepandServer.CurDate;
-      return new SimpleResult()
+      return new SimpleResult
       {
         result = "200",
-        message = (object) curDate
+        message = curDate
       };
     }
 
@@ -30,22 +30,22 @@ namespace SAJApi.Controllers
     {
       try
       {
-        Utils.AutoLoginWithToken(token, this.Request.GetClientIpAddress());
+        Utils.AutoLoginWithToken(token, Request.GetClientIpAddress());
         string[] strArray = actions.Split(',');
         List<bool> boolList = new List<bool>();
         for (int index = 0; index < strArray.Length; ++index)
           boolList.Add(UserAccount.Instance.UserHasPermissionFor(39, strArray[index]));
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) boolList,
+          message = boolList,
           result = "200"
         };
       }
       catch (Exception ex)
       {
-        return new SimpleResult()
+        return new SimpleResult
         {
-          message = (object) ex.Message,
+          message = ex.Message,
           result = "500.9"
         };
       }

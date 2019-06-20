@@ -1,19 +1,4 @@
-﻿using log4net;
-using SAJApi.Models;
-using SepandAsa.RepairManagment.Business;
-using SepandAsa.Shared.Business.BaseInfo;
-using SepandAsa.Shared.Business.Security;
-using SepandAsa.Shared.Business.SubSystemManagement;
-using SepandAsa.Shared.Domain.Reports;
-using SepandAsa.Shared.Domain.Security;
-using SepandAsa.Utility.Security;
-using SepandAsa.UtilityClasses;
-using Stimulsoft.Base.Drawing;
-using Stimulsoft.Report;
-using Stimulsoft.Report.Components;
-using Stimulsoft.Report.Export;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
@@ -34,6 +19,20 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
+using log4net;
+using SAJApi.Models;
+using SepandAsa.RepairManagment.Business;
+using SepandAsa.Shared.Business.BaseInfo;
+using SepandAsa.Shared.Business.Reports;
+using SepandAsa.Shared.Business.Security;
+using SepandAsa.Shared.Domain.Reports;
+using SepandAsa.Shared.Domain.Security;
+using SepandAsa.Utility.Security;
+using SepandAsa.UtilityClasses;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Components;
+using Stimulsoft.Report.Export;
 
 namespace SAJApi.Custom
 {
@@ -131,8 +130,8 @@ namespace SAJApi.Custom
         {
             if (filePath == null)
                 throw new ArgumentNullException(nameof(filePath));
-            this._filePath = filePath;
-            this._contentType = contentType;
+            _filePath = filePath;
+            _contentType = contentType;
         }
 
         public Task<HttpResponseMessage> ExecuteAsync(
@@ -140,11 +139,11 @@ namespace SAJApi.Custom
         {
             HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = (HttpContent)new StreamContent((Stream)System.IO.File.OpenRead(this._filePath))
+                Content = new StreamContent(File.OpenRead(_filePath))
             };
-            string mediaType = this._contentType ?? MimeMapping.GetMimeMapping(Path.GetExtension(this._filePath));
+            string mediaType = _contentType ?? MimeMapping.GetMimeMapping(Path.GetExtension(_filePath));
             result.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
-            return Task.FromResult<HttpResponseMessage>(result);
+            return Task.FromResult(result);
         }
     }
     public static class Utils
@@ -153,9 +152,9 @@ namespace SAJApi.Custom
 
     internal static void ConfigLanguage()
     {
-      if (!File.Exists(Path.Combine(Utils.AppDataPath(), "fa.xml")))
+      if (!File.Exists(Path.Combine(AppDataPath(), "fa.xml")))
         return;
-      StiOptions.Localization.Load(Path.Combine(Utils.AppDataPath(), "fa.xml"));
+      StiOptions.Localization.Load(Path.Combine(AppDataPath(), "fa.xml"));
     }
 
     public static string DbServerAddress
@@ -188,8 +187,8 @@ namespace SAJApi.Custom
     {
       ConnectionStringSettings connectionString = ConfigurationManager.ConnectionStrings[dataBaseName];
       if (connectionString != null)
-        return Utils.DecryptString(connectionString.ConnectionString) + string.Format(";database={0}", (object) dataBaseName);
-      return Utils.GetSepandAsaConnectionString(dataBaseName);
+        return DecryptString(connectionString.ConnectionString) + string.Format(";database={0}", dataBaseName);
+      return GetSepandAsaConnectionString(dataBaseName);
     }
 
     internal static string GetSepandAsaConnectionString(string databaseName)
@@ -200,15 +199,15 @@ namespace SAJApi.Custom
       ConnectionStringSettings connectionString = ConfigurationManager.ConnectionStrings["SAJConnectionString"];
       if (connectionString == null)
         throw new ApplicationException("Invalid SAJ Connection String In App.Config");
-      string str2 = !(str1 == "Server") ? connectionString.ConnectionString : Utils.DecryptString(connectionString.ConnectionString);
+      string str2 = !(str1 == "Server") ? connectionString.ConnectionString : DecryptString(connectionString.ConnectionString);
       string str3;
       if (str1 == "Attach")
       {
         string str4 = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Dbs";
-        str3 = str2 + string.Format(";AttachDbFilename={0}\\{1}.mdf;database={1}", (object) str4, (object) databaseName);
+        str3 = str2 + string.Format(";AttachDbFilename={0}\\{1}.mdf;database={1}", str4, databaseName);
       }
       else
-        str3 = str2 + string.Format(";database={0}", (object) databaseName);
+        str3 = str2 + string.Format(";database={0}", databaseName);
       return str3;
     }
 
@@ -226,7 +225,7 @@ namespace SAJApi.Custom
     {
       get
       {
-        return Utils.CurDateTime.ToString((DateFormat) 0);
+        return CurDateTime.ToString((DateFormat) 0);
       }
     }
 
@@ -240,24 +239,24 @@ namespace SAJApi.Custom
 
     public static object GetPropValue(object src, string propName)
     {
-      return src.GetType().GetProperty(propName).GetValue(src, (object[]) null);
+      return src.GetType().GetProperty(propName).GetValue(src, null);
     }
 
     public static T CreateItemFromRow<T>(DataRow row) where T : new()
     {
       T obj = new T();
-      Utils.SetItemFromRow<T>(obj, row);
+      SetItemFromRow(obj, row);
       return obj;
     }
 
     public static IEnumerable<T> CreateListFromTable<T>(DataTable tbl) where T : new()
     {
-      return (IEnumerable<T>) tbl.Rows.Cast<DataRow>().Select<DataRow, T>((Func<DataRow, T>) (r => Utils.CreateItemFromRow<T>(r))).ToList<T>();
+      return tbl.Rows.Cast<DataRow>().Select(r => CreateItemFromRow<T>(r)).ToList();
     }
 
     internal static string GetTempFileName(string token, string startFieName, string extFileName)
     {
-      foreach (string file in Directory.GetFiles(Utils.GetPathAppData()))
+      foreach (string file in Directory.GetFiles(GetPathAppData()))
       {
         if (file.Contains(token) && file.EndsWith(extFileName))
           File.Delete(file);
@@ -268,7 +267,7 @@ namespace SAJApi.Custom
 
     public static string ConvertStiToPdf(StiReport report, string pdfName)
     {
-      string fileFullPathAppData = Utils.GetFileFullPathAppData(pdfName);
+      string fileFullPathAppData = GetFileFullPathAppData(pdfName);
       new StiPdfExportService().ExportPdf(report, fileFullPathAppData);
       return fileFullPathAppData;
     }
@@ -295,25 +294,25 @@ namespace SAJApi.Custom
 
     public static void SetItemFromRow<T>(T item, DataRow row) where T : new()
     {
-      foreach (DataColumn column in (InternalDataCollectionBase) row.Table.Columns)
+      foreach (DataColumn column in row.Table.Columns)
       {
-        string name = char.ToLowerInvariant(column.ColumnName[0]).ToString() + column.ColumnName.Substring(1);
+        string name = char.ToLowerInvariant(column.ColumnName[0]) + column.ColumnName.Substring(1);
         PropertyInfo property = item.GetType().GetProperty(name);
-        if (property != (PropertyInfo) null && row[column] != DBNull.Value)
-          property.SetValue((object) item, row[column], (object[]) null);
+        if (property != null && row[column] != DBNull.Value)
+          property.SetValue(item, row[column], null);
       }
     }
 
     public static void SetRowFromItem<T>(DataRow row, T item) where T : new()
     {
-      foreach (DataColumn column in (InternalDataCollectionBase) row.Table.Columns)
+      foreach (DataColumn column in row.Table.Columns)
       {
-        string name = char.ToLowerInvariant(column.ColumnName[0]).ToString() + column.ColumnName.Substring(1);
+        string name = char.ToLowerInvariant(column.ColumnName[0]) + column.ColumnName.Substring(1);
         PropertyInfo property = item.GetType().GetProperty(name);
-        if (property == (PropertyInfo) null)
+        if (property == null)
           property = item.GetType().GetProperty(column.ColumnName);
-        if (property != (PropertyInfo) null && property.GetValue((object) item) != null)
-          row[column] = property.GetValue((object) item);
+        if (property != null && property.GetValue(item) != null)
+          row[column] = property.GetValue(item);
       }
     }
 
@@ -345,12 +344,12 @@ namespace SAJApi.Custom
       {
         Console.WriteLine("UserName= " + userName + " : " + password);
         userName = password;
-        Utils.SAJLoginWithName(userName, true, 0);
+        SAJLoginWithName(userName, true, 0);
         return true;
       }
-      bool flag = Utils.SAJLoginNormalMethod(ref userName, password);
-      if (!flag && Utils.IsTrue("SAJADLoginEnable"))
-        flag = Utils.SAJLoginADlMethod(ref userName, password);
+      bool flag = SAJLoginNormalMethod(ref userName, password);
+      if (!flag && IsTrue("SAJADLoginEnable"))
+        flag = SAJLoginADlMethod(ref userName, password);
       if (flag && UserAccount.Instance.CurrentUserPermissions.Count== 0)
       {
         Company.Instance.SetCurrentCompany(Company.Instance.GetAllCompanies().Company[0]);
@@ -374,7 +373,7 @@ namespace SAJApi.Custom
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
+        log.Error(ex.Message, ex);
         return false;
       }
     }
@@ -389,14 +388,14 @@ namespace SAJApi.Custom
       }
       catch (Exception ex)
       {
-        Utils.log.Error((object) ex.Message, ex);
+        log.Error(ex.Message, ex);
         return false;
       }
     }
 
     internal static bool IsValidPassord(string currentUserName, string oldPassword)
     {
-      return Utils.SAJLoginNormalMethod(ref currentUserName, oldPassword);
+      return SAJLoginNormalMethod(ref currentUserName, oldPassword);
     }
 
     public static List<string> GetAllRolesForCurUser(string userName)
@@ -428,7 +427,7 @@ namespace SAJApi.Custom
       List<string> source = new List<string>();
       columnNames = columnNames.ToLower();
       bool flag = false;
-      foreach (DataColumn column in (InternalDataCollectionBase) dataSource.Columns)
+      foreach (DataColumn column in dataSource.Columns)
       {
         if (columnNames != "" && !columnNames.Contains("," + column.ColumnName.ToLower()))
         {
@@ -436,7 +435,7 @@ namespace SAJApi.Custom
         }
         else
         {
-          if (!flag && Utils.IsTblPkId(column))
+          if (!flag && IsTblPkId(column))
           {
             column.ColumnName = "id";
             column.Caption = "شناسه";
@@ -451,24 +450,24 @@ namespace SAJApi.Custom
       foreach (string name in stringList)
         dataSource.Columns.Remove(name);
       List<AgGridColumn> agGridColumnList = new List<AgGridColumn>();
-      foreach (string index in dontSortColumns ? source : source.OrderBy<string, string>((Func<string, string>) (r => r)).ToList<string>())
+      foreach (string index in dontSortColumns ? source : source.OrderBy(r => r).ToList())
       {
         DataColumn column = dataSource.Columns[index];
-        AgGridColumn agGridColumn = new AgGridColumn()
+        AgGridColumn agGridColumn = new AgGridColumn
         {
           field = column.ColumnName,
           headerName = column.Caption,
-          filter = Utils.GetColumnAgGridType(column.DataType),
+          filter = GetColumnAgGridType(column.DataType),
           hide = column.ColumnName == column.Caption
         };
         if (column.ColumnName == "MasterLogId" || column.ColumnName == "LogDate")
           agGridColumn.sort = "desc";
         agGridColumnList.Add(agGridColumn);
       }
-      AgGridModel agGridModel = new AgGridModel()
+      AgGridModel agGridModel = new AgGridModel
       {
         columnDefs = agGridColumnList,
-        rowData = (object) dataSource
+        rowData = dataSource
       };
       GC.Collect();
       return agGridModel;
@@ -486,7 +485,7 @@ namespace SAJApi.Custom
 
     private static string GetColumnAgGridType(Type dataType)
     {
-      Utils.IsNumericType(dataType);
+      IsNumericType(dataType);
       return "agSetColumnFilter";
     }
 
@@ -495,28 +494,28 @@ namespace SAJApi.Custom
       if (selectColumn)
         dataSource.Columns.Add(new DataColumn("sel", typeof (bool))
         {
-          DefaultValue = (object) false
+          DefaultValue = false
         });
-      foreach (string name in dataSource.Columns.Cast<DataColumn>().Where<DataColumn>((Func<DataColumn, bool>) (col =>
+      foreach (string name in dataSource.Columns.Cast<DataColumn>().Where(col =>
       {
-        if (col.ColumnName != "sel" && !col.Unique)
-          return col.Caption == col.ColumnName;
-        return false;
-      })).Select<DataColumn, string>((Func<DataColumn, string>) (col => col.ColumnName)).ToList<string>())
+          if (col.ColumnName != "sel" && !col.Unique)
+              return col.Caption == col.ColumnName;
+          return false;
+      }).Select(col => col.ColumnName).ToList())
         dataSource.Columns.Remove(name);
       List<AgGridColumn> agGridColumnList = new List<AgGridColumn>();
       if (selectColumn)
-        agGridColumnList.Add(new AgGridColumn()
+        agGridColumnList.Add(new AgGridColumn
         {
           field = "sel"
         });
-      foreach (DataColumn column in (InternalDataCollectionBase) dataSource.Columns)
+      foreach (DataColumn column in dataSource.Columns)
       {
         if (!(column.ColumnName == "sel"))
         {
           if (column.ColumnName == "MailId")
             column.Caption = "شناسه";
-          AgGridColumn agGridColumn = new AgGridColumn()
+          AgGridColumn agGridColumn = new AgGridColumn
           {
             field = column.ColumnName,
             headerName = column.Caption
@@ -524,10 +523,10 @@ namespace SAJApi.Custom
           agGridColumnList.Add(agGridColumn);
         }
       }
-      return new AgGridModel()
+      return new AgGridModel
       {
         columnDefs = agGridColumnList,
-        rowData = (object) dataSource
+        rowData = dataSource
       };
     }
 
@@ -563,27 +562,27 @@ namespace SAJApi.Custom
 
     internal static bool ChangePassword(string usr, string oldpwd, string newpwd)
     {
-      Utils.SAJLoginWithName(usr, false, 0);
+      SAJLoginWithName(usr, false, 0);
       UserAccount.Instance.ChangeUserPass(newpwd, newpwd, oldpwd);
-      Utils.SAJLoginWithName(usr, true, 0);
+      SAJLoginWithName(usr, true, 0);
       return true;
     }
 
     internal static bool IsPasswordExpired(string usr)
     {
-      Utils.SAJLoginWithName(usr, false, 0);
+      SAJLoginWithName(usr, false, 0);
       return UserAccount.Instance.IsPasswordExpired();
     }
 
     internal static void AutoLoginWithToken(string token, string reqIp)
     {
-      string[] strArray = Utils.DecryptToken(token).Split(new string[1]
+      string[] strArray = DecryptToken(token).Split(new string[1]
       {
         "-"
       }, StringSplitOptions.RemoveEmptyEntries);
       if (strArray.Length < 2 || strArray[1] != reqIp)
         throw new SecurityException("توکن ارسال شده نامعتبر است");
-      Utils.SAJLoginWithName(strArray[0], false, 0);
+      SAJLoginWithName(strArray[0], false, 0);
     }
 
     private static string DecryptToken(string cipherText)
@@ -606,9 +605,9 @@ namespace SAJApi.Custom
       report.Load(reportRow.bineryReport);
       if (!report.IsCompiled)
         report.Compile();
-      ReportInfo.FilterRowRow filterRowRow = rptInfo.FilterRow.Count> 0 ? rptInfo.FilterRow[0] : (ReportInfo.FilterRowRow) null;
-      RepairManagmentSubSystem.Instance.CustomizeReport(rptInfo.Report[0], report, (DataRow) filterRowRow, dataSource);
-      SepandAsa.Shared.Business.Reports.Report.SetCurDateTimeInReport(report);
+      ReportInfo.FilterRowRow filterRowRow = rptInfo.FilterRow.Count> 0 ? rptInfo.FilterRow[0] : null;
+      RepairManagmentSubSystem.Instance.CustomizeReport(rptInfo.Report[0], report, filterRowRow, dataSource);
+      Report.SetCurDateTimeInReport(report);
       foreach (StiPage page in report.CompiledReport.Pages)
         page.Rendering+=page_Rendering;
       report.Render();
@@ -622,7 +621,7 @@ namespace SAJApi.Custom
       stiPage.Watermark.ImageAlignment=ContentAlignment.BottomCenter;
       stiPage.Watermark.ShowBehind=false;
       stiPage.Watermark.ShowImageBehind=false;
-      StiBrush stiBrush = (StiBrush) new StiSolidBrush(Color.FromArgb(50, 0, 0, 0));
+      StiBrush stiBrush = new StiSolidBrush(Color.FromArgb(50, 0, 0, 0));
       stiPage.Watermark.TextBrush=stiBrush;
     }
 
@@ -634,7 +633,7 @@ namespace SAJApi.Custom
     {
       int count = base64String.IndexOf("base64,") + 7;
       base64String = base64String.Remove(0, count);
-      return Utils.CreateTempFileForRead(Convert.FromBase64String(base64String), perfix, ext, token, false);
+      return CreateTempFileForRead(Convert.FromBase64String(base64String), perfix, ext, token, false);
     }
 
     internal static string CreateTempFileForRead(
@@ -644,8 +643,8 @@ namespace SAJApi.Custom
       string token,
       bool forDownload = false)
     {
-      string tempFileName = Utils.GetTempFileName(token, perfix, ext);
-      string path = !forDownload ? Utils.GetFileFullPathAppData(tempFileName) : Utils.GetFileFullPathDownload(tempFileName);
+      string tempFileName = GetTempFileName(token, perfix, ext);
+      string path = !forDownload ? GetFileFullPathAppData(tempFileName) : GetFileFullPathDownload(tempFileName);
       File.WriteAllBytes(path, fileData);
       if (!forDownload)
         return path;
@@ -661,19 +660,19 @@ namespace SAJApi.Custom
     {
       public static bool Is(Type type)
       {
-        if (type == (Type) null)
+        if (type == null)
           return false;
         TypeCode typeCode = Type.GetTypeCode(type);
         if (typeCode != TypeCode.Object)
           return (uint) (typeCode - 5) <= 10U;
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (Nullable<>))
-          return Utils.Numeric.Is(Nullable.GetUnderlyingType(type));
+          return Is(Nullable.GetUnderlyingType(type));
         return false;
       }
 
       public static bool Is<T>()
       {
-        return Utils.Numeric.Is(typeof (T));
+        return Is(typeof (T));
       }
     }
   }
