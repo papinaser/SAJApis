@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="SAJConnectionString-Web.config Connection String" description="SAJConnectionString Connection String used in web.config by the application to access the database." defaultValue="fEzSnIe9yvv8IOV1j6ycvhu6bKlwGfAM2nsserJOS0iIR0losGLp05gR+HLIKlN5zTV07+/3FDvSCEY8fMSVGA==" tags="SqlConnectionString">
+    <parameterEntry kind="XmlFile" scope="D:\\SAJ\\IntegratedSystems\\SAJ_IS\\WebDesign\\SAJApis\\SAJApi\\obj\\Release\\Package\\PackageTmp\\Web\.config$" match="/configuration/connectionStrings/add[@name='SAJConnectionString']/@connectionString" />
+  </parameter>
+</parameters>

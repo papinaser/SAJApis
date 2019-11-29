@@ -9,7 +9,7 @@ using SepandAsa.Shared.Business.Utilities;
 
 namespace SAJApi.Controllers
 {
-    [EnableCors("http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
+    [EnableCors("http://192.168.1.8:888,http://localhost:8100,http://91.98.153.26:3000,http://localhost:3000,http://172.20.0.245:888", "*", "*")]
     public class UserController : ApiController
   {
     [Route("api/User/GetCurrentDate")]
